@@ -47,12 +47,31 @@ export async function daVaoXemThu(): Promise<boolean> {
   }
 }
 
+/**
+ * Báo tin cho màn gốc biết đã bấm vào app.
+ *
+ * Bản thật nghe `onAuthStateChange` của Supabase để biết vừa có phiên. Bản xem
+ * thử không có phiên nào để mà nghe, nên phải tự báo — thiếu chỗ này thì bấm
+ * "Dùng ngay" xong bị đá NGƯỢC về màn đăng nhập, vì màn gốc vẫn giữ giá trị
+ * đọc được lúc mở app. Đã dính đúng lỗi này một lần.
+ */
+type NguoiNghe = (co: boolean) => void;
+const dangNghe = new Set<NguoiNghe>();
+
+export function ngheDaVao(f: NguoiNghe) {
+  dangNghe.add(f);
+  return () => {
+    dangNghe.delete(f);
+  };
+}
+
 export async function danhDauDaVao() {
   try {
     await AsyncStorage.setItem(KHOA_DA_VAO, '1');
   } catch {
     // Trình duyệt chặn bộ nhớ thì thôi, lần sau hỏi lại. Không đáng để chết app.
   }
+  dangNghe.forEach((f) => f(true));
 }
 
 export async function docHoSoXemThu(): Promise<HoSo | null> {
@@ -84,4 +103,5 @@ export async function xoaHoSoXemThu() {
   } catch {
     // Không xoá được cũng không sao: đây là bản xem thử, không có gì để mất.
   }
+  dangNghe.forEach((f) => f(false));
 }

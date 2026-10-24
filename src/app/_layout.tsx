@@ -21,7 +21,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Chuong } from '@/components/chuong';
 import { CHU, MAU } from '@/constants/giao-dien';
 import { khiDoiTaiKhoan } from '@/lib/doi-tai-khoan';
-import { daVaoXemThu } from '@/lib/ho-so-xem-thu';
+import { daVaoXemThu, ngheDaVao } from '@/lib/ho-so-xem-thu';
 import { datCoHoSo, docHoSo } from '@/lib/ho-so';
 import { goHetNhacHen } from '@/lib/nhac-hen';
 import { hoSoThayCuaToi } from '@/lib/thay';
@@ -169,7 +169,8 @@ export default function RootLayout() {
   // Nghe thẳng Supabase chứ không tự gọi lại, vì cách này bắt được cả lúc đăng
   // xuất lẫn lúc phiên hết hạn.
   useEffect(() => {
-    if (XEM_THU) return;
+    // Bản xem thử không có phiên Supabase nào để nghe, nên nghe cờ cục bộ.
+    if (XEM_THU) return ngheDaVao(setCoPhien);
     const { data } = supabase.auth.onAuthStateChange((_, phien) => {
       setCoPhien(Boolean(phien));
       if (!phien) {
