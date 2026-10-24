@@ -21,6 +21,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Chuong } from '@/components/chuong';
 import { CHU, MAU } from '@/constants/giao-dien';
 import { khiDoiTaiKhoan } from '@/lib/doi-tai-khoan';
+import { daVaoXemThu } from '@/lib/ho-so-xem-thu';
 import { datCoHoSo, docHoSo } from '@/lib/ho-so';
 import { goHetNhacHen } from '@/lib/nhac-hen';
 import { hoSoThayCuaToi } from '@/lib/thay';
@@ -74,7 +75,10 @@ export default function RootLayout() {
     setLoi(null);
     setXong(false);
     (XEM_THU
-      ? Promise.resolve(true)
+      ? // Bản xem thử: "có phiên" nghĩa là người xem đã bấm Dùng ngay ở lần
+        // trước. Trả cứng true như cũ thì họ bị thả thẳng vào app với một hồ
+        // sơ trống, không bao giờ được mời tạo hồ sơ của chính mình.
+        daVaoXemThu()
       : supabase.auth.getSession().then(({ data }) => Boolean(data.session))
     )
       .then(async (co) => {

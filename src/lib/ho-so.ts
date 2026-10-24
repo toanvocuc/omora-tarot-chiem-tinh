@@ -6,7 +6,8 @@ import { khiDoiTaiKhoan } from '@/lib/doi-tai-khoan';
 import { dangNhapAnDanh, supabase, xoaDauTaiKhoanThat } from '@/lib/supabase';
 import { goHetNhacHen } from '@/lib/nhac-hen';
 import { huyLichLaBai } from '@/lib/thong-bao';
-import { HO_SO_MAU, XEM_THU } from '@/lib/xem-thu';
+import { docHoSoXemThu, luuHoSoXemThu, xoaHoSoXemThu } from '@/lib/ho-so-xem-thu';
+import { XEM_THU } from '@/lib/xem-thu';
 
 export type GioiTinh = 'nam' | 'nu' | 'khac';
 
@@ -130,7 +131,9 @@ export function kiemNgaySinh(ngay: number, thang: number, nam: number): string |
 }
 
 export async function docHoSo(): Promise<HoSo | null> {
-  if (XEM_THU) return HO_SO_MAU;
+  // Bản xem thử đọc hồ sơ NGƯỜI XEM TỰ KHAI, cất trên máy họ. Trả null khi
+  // chưa khai, để app dẫn họ vào luồng tạo hồ sơ như một người mới thật.
+  if (XEM_THU) return docHoSoXemThu();
   const { data: u } = await supabase.auth.getUser();
   if (!u.user) return null;
   const { data, error } = await supabase
@@ -143,7 +146,7 @@ export async function docHoSo(): Promise<HoSo | null> {
 }
 
 export async function luuHoSo(phan: Partial<HoSo>): Promise<HoSo> {
-  if (XEM_THU) return { ...HO_SO_MAU, ...phan };
+  if (XEM_THU) return luuHoSoXemThu(phan);
 
   // Xoá sạch dữ liệu xong là đăng xuất, mà màn gốc chỉ tạo phiên lúc mở app nên
   // không ai tạo lại. Thiếu dòng này thì khách nhập đủ năm bước, tới bước cuối
@@ -181,7 +184,13 @@ export async function luuHoSo(phan: Partial<HoSo>): Promise<HoSo> {
  * bỏ được nó đi là bỏ luôn cả một loại lỗi.
  */
 export async function xoaTaiKhoan() {
-  if (XEM_THU) return;
+  // Xem thử: xoá hồ sơ trên máy là đủ, và cũng đúng nghĩa — bấm xong thì bản
+  // xem thử về lại đúng trạng thái người lạ vừa mở lần đầu.
+  if (XEM_THU) {
+    await xoaHoSoXemThu();
+    datCoHoSo(false);
+    return;
+  }
 
   // Lấy thẻ đăng nhập để gửi kèm. Hàm bên kia dựa vào thẻ này để biết xoá ai,
   // chứ không nhận mã người dùng từ thân yêu cầu — nhận là ai cũng xoá được
