@@ -1,0 +1,107 @@
+/** Hai kiểu nền ảnh phủ cả màn hình, dùng chung cho các nhóm màn. */
+
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
+import { View } from 'react-native';
+
+
+/**
+ * Bầu trời sao dọc, phủ cả màn.
+ * Phủ thêm một lớp màu nền mờ để chữ trắng vẫn đọc rõ trên vùng sáng của ảnh.
+ */
+export function NenTroiSao({ mo = 0.72 }: { mo?: number }) {
+  return (
+    <View pointerEvents="none" style={{ position: 'absolute', inset: 0 }}>
+      <Image
+        source={require('@/assets/nen/sao-doc.jpg')}
+        style={{ flex: 1 }}
+        contentFit="cover"
+      />
+      <LinearGradient
+        colors={[`rgba(11,18,32,${mo})`, `rgba(11,18,32,${Math.min(1, mo + 0.2)})`]}
+        style={{ position: 'absolute', inset: 0 }}
+      />
+    </View>
+  );
+}
+
+/**
+ * Tinh vân dọc, phủ cả màn Khám phá.
+ *
+ * Ảnh này sáng hơn hẳn mấy ảnh nền khác — lõi sao trắng ở khoảng một phần ba
+ * trên rơi đúng chỗ huy hiệu cung đứng — nên phải phủ một lớp màu nền khá dày.
+ * `mo` để hở: cần sáng hơn hay tối hơn thì chỉnh ở đây, không phải sửa ảnh.
+ */
+export function NenTinhVan({ mo = 0.44 }: { mo?: number }) {
+  return (
+    <View pointerEvents="none" style={{ position: 'absolute', inset: 0 }}>
+      <Image source={require('@/assets/nen/tinh-van.jpg')} style={{ flex: 1 }} contentFit="cover" />
+      {/* Đậm dần xuống dưới: phần dưới màn là chỗ xếp các thẻ có chữ. */}
+      <LinearGradient
+        colors={[`rgba(11,18,32,${mo})`, `rgba(11,18,32,${Math.min(1, mo + 0.16)})`]}
+        style={{ position: 'absolute', inset: 0 }}
+      />
+    </View>
+  );
+}
+
+/**
+ * Bầu trời có các chòm sao, phủ cả màn Chuyên gia.
+ *
+ * Ảnh này tối sẵn — đo ra độ sáng trung bình 13 trên 255 — nên lớp phủ nhẹ tay
+ * hơn hẳn mấy nền khác. Phủ dày thì mất luôn mấy đường nối chòm sao, mà đó
+ * đúng là thứ đáng nhìn trong ảnh.
+ */
+export function NenChomSao({ mo = 0.3 }: { mo?: number }) {
+  return (
+    <View pointerEvents="none" style={{ position: 'absolute', inset: 0 }}>
+      <Image source={require('@/assets/nen/chom-sao.jpg')} style={{ flex: 1 }} contentFit="cover" />
+      <LinearGradient
+        colors={[`rgba(6,8,13,${mo})`, `rgba(6,8,13,${Math.min(1, mo + 0.3)})`]}
+        style={{ position: 'absolute', inset: 0 }}
+      />
+    </View>
+  );
+}
+
+/**
+ * Dải hoa văn mép trên của mỗi khung ăn sâu xuống bao nhiêu dp, đo ở khoảng
+ * GIỮA màn hình (110–302dp) — chỗ tiêu đề nằm. Hai bên mép thì hoa văn chạy
+ * dọc suốt màn nên không có số nào để tránh.
+ *
+ * Đo bằng cách đọc thẳng ảnh gốc: ảnh phủ kiểu cover nên khít chiều cao, đổi
+ * dòng ảnh sang dp theo tỷ lệ 915 trên chiều cao ảnh.
+ */
+export const SAU_HOA_VAN = { van: 61, so: 56, cung: 76 } as const;
+
+/**
+ * Khung hoa văn viền quanh màn. Ảnh nền đã đen sẵn nên không cần phủ thêm lớp tối.
+ *
+ * `mo` hạ độ đậm của ảnh xuống. Hai khung số và khung cung có hoa văn ăn khá sâu
+ * vào trong lề, nội dung chạy đè lên là rối mắt, nên chúng chạy mờ hơn khung Tarot.
+ */
+function NenKhung({ nguon, mo = 1 }: { nguon: number; mo?: number }) {
+  return (
+    <Image
+      source={nguon}
+      style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: mo }}
+      contentFit="cover"
+      pointerEvents="none"
+    />
+  );
+}
+
+/** Khung hoa văn vàng, dùng cho phần Tarot. */
+export function NenKhungVan() {
+  return <NenKhung nguon={require('@/assets/nen/khung-hoa-van.jpg')} />;
+}
+
+/** Khung có các con số quanh viền, dùng cho phần Thần số học. */
+export function NenKhungSo() {
+  return <NenKhung nguon={require('@/assets/nen/khung-so.jpg')} mo={0.55} />;
+}
+
+/** Khung có mười hai biểu tượng hoàng đạo quanh viền, dùng cho phần cung hoàng đạo. */
+export function NenKhungCung() {
+  return <NenKhung nguon={require('@/assets/nen/khung-cung.jpg')} mo={0.55} />;
+}

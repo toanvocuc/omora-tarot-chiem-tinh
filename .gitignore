@@ -1,0 +1,60 @@
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+credentials.json
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+example
+
+# generated native folders
+/ios
+/android
+
+# bien moi truong
+.env
+.env.local
+
+# eas
+.easignore
+
+# khoa quan tri, KHONG BAO GIO dua vao app
+.env.quan-tri
+
+# Ban web xuat tam de chup anh nop cho
+dist-web/
+# Mọi thư mục xuất bản web để chụp ảnh hay kiểm thử. Có lần lỡ commit 26MB
+# vì chỉ chặn đúng tiền tố 'dist-web-'.
+dist-*/

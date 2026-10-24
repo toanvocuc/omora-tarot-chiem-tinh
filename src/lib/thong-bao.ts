@@ -1,0 +1,364 @@
+/**
+ * Thông báo đẩy.
+ *
+ * Chia làm hai đường, vì hai đường này có điều kiện chạy khác hẳn nhau:
+ *
+ *  1. LỜI NHẮC LÁ BÀI mỗi sáng — hẹn giờ ngay trên máy, không cần máy chủ, không
+ *     cần tài khoản Apple, và chạy được cả trong Expo Go.
+ *
+ *  2. TIN GỬI THEO ĐỢT từ trang quản trị — cần mã thiết bị gửi lên máy chủ. Mã đó
+ *     chỉ lấy được trong bản đóng gói thật.
+ *
+ * ────────────────────────────────────────────────────────────────────────────
+ * VÌ SAO IMPORT LẺ TỪNG FILE THAY VÌ `import * as Notifications`
+ *
+ * `expo-notifications/build/index.js` kéo theo `getExpoPushTokenAsync`, file này
+ * lại kéo theo `DevicePushTokenAutoRegistration.fx`. Chữ `.fx` nghĩa là module
+ * chạy phụ ngay lúc nạp, và nó gọi `addPushTokenListener` ở cấp module. Hàm đó
+ * gọi tiếp `warnOfExpoGoPushUsage`, thứ **ném lỗi** trên Android khi đang chạy
+ * Expo Go.
+ *
+ * Nghĩa là chỉ cần viết `import * as Notifications from 'expo-notifications'` là
+ * màn hình chết, chưa cần gọi hàm nào. Màn cài đặt thông báo và màn hoàn tất hồ
+ * sơ đều đã dính lỗi đó, mà màn hoàn tất nằm giữa luồng nhập hồ sơ nên khách mới
+ * không đi tiếp được.
+ *
+ * Mấy file thông báo tại chỗ bên dưới không dính chuỗi đó, nên import lẻ từng
+ * file là chạy được cả trong Expo Go. Riêng phần lấy mã thiết bị thì nạp muộn
+ * bằng `await import`, và chỉ nạp khi đã qua `vuongMacMaDay`.
+ *
+ * Đổi phiên bản expo-notifications thì kiểm lại mấy đường dẫn này. Sai đường dẫn
+ * thì Metro báo không tìm thấy module ngay lúc đóng gói, không im lặng bỏ qua.
+ * ────────────────────────────────────────────────────────────────────────────
+ */
+
+import { isRunningInExpoGo } from 'expo';
+import Constants from 'expo-constants';
+import { cancelScheduledNotificationAsync } from 'expo-notifications/build/cancelScheduledNotificationAsync';
+import { getAllScheduledNotificationsAsync } from 'expo-notifications/build/getAllScheduledNotificationsAsync';
+import { AndroidImportance } from 'expo-notifications/build/NotificationChannelManager.types';
+import { setNotificationHandler } from 'expo-notifications/build/NotificationsHandler';
+import { getPermissionsAsync, requestPermissionsAsync } from 'expo-notifications/build/NotificationPermissions';
+import { SchedulableTriggerInputTypes } from 'expo-notifications/build/Notifications.types';
+import { scheduleNotificationAsync } from 'expo-notifications/build/scheduleNotificationAsync';
+import { setNotificationChannelAsync } from 'expo-notifications/build/setNotificationChannelAsync';
+import { Platform } from 'react-native';
+
+import { supabase } from '@/lib/supabase';
+import { XEM_THU } from '@/lib/xem-thu';
+
+/** Một mã cố định, để đổi giờ thì thay đúng lời nhắc cũ chứ không chồng thêm cái mới. */
+const MA_NHAC_LA_BAI = 'nhac-la-bai-hom-nay';
+
+/** Tên kênh trên Android. Thiếu kênh thì thông báo hiện lặng lẽ, khách không thấy. */
+const KENH = 'la-bai-hom-nay';
+
+/**
+ * Lời nhắc đổi theo ngày cho đỡ nhàm.
+ *
+ * Cố ý không nói luôn ra lá nào. Lời nhắc chỉ để khách mở app, biết trước rồi thì
+ * chẳng còn lý do mở nữa.
+ */
+const LOI_NHAC = [
+  { tieuDe: 'Lá bài hôm nay đang chờ bạn', than: 'Mở ra xem hôm nay bộ bài nói gì.' },
+  { tieuDe: 'Hôm nay bạn rút được lá gì', than: 'Một lá cho cả ngày, mở ra xem thử.' },
+  { tieuDe: 'Bộ bài có lời cho hôm nay', than: 'Mất ba mươi giây để biết.' },
+  { tieuDe: 'Chào buổi sáng', than: 'Lá bài của ngày hôm nay đã sẵn sàng.' },
+  { tieuDe: 'Một lá cho hôm nay', than: 'Xem rồi hẵng bắt đầu ngày mới.' },
+];
+
+/**
+ * Tách chuỗi '07:00' hoặc '07:00:00' thành giờ và phút.
+ *
+ * Dùng `||` chứ không dùng `??`: `??` chỉ bắt null và undefined, lọt chuỗi rỗng.
+ * Mà chuỗi rỗng thì `Number('')` ra 0 — một con số hợp lệ — nên lời nhắc rơi về
+ * NỬA ĐÊM chứ không về 7 giờ như mặc định ghi ở đây.
+ */
+export function tachGio(gio: string | null | undefined): { gio: number; phut: number } {
+  const [g, p] = (gio?.trim() || '07:00').split(':');
+  const soGio = Number(g);
+  const soPhut = Number(p);
+  return {
+    gio: Number.isFinite(soGio) ? Math.min(23, Math.max(0, soGio)) : 7,
+    phut: Number.isFinite(soPhut) ? Math.min(59, Math.max(0, soPhut)) : 0,
+  };
+}
+
+/**
+ * Cho phép hiện thông báo cả khi app đang mở.
+ *
+ * Mặc định expo-notifications NUỐT mọi thông báo nổ lúc app đang ở trước mặt.
+ * Nó giao cho app tự quyết, mà không khai thì mặc định là không hiện gì.
+ *
+ * Chuyện này từng làm nút gửi thử trong màn cài đặt trông như hỏng: tin nổ sau
+ * năm giây mà người bấm vẫn đang nhìn màn hình, nên không thấy gì. Nút đó đã bỏ,
+ * nhưng khai báo vẫn cần: lời nhắc bảy giờ sáng có thể nổ đúng lúc khách đang mở
+ * app, và lúc đó nó cũng sẽ bị nuốt y như vậy.
+ *
+ * Trên Android phải để `shouldPlaySound` là true: tài liệu của thư viện ghi rõ
+ * đặt false thì dải thông báo không bung ra, bất kể mức ưu tiên.
+ */
+export function batHienKhiDangMo() {
+  if (XEM_THU) return;
+  setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+}
+
+/** Android phải khai kênh trước, không thì thông báo không kêu và không hiện trên màn khoá. */
+async function taoKenh() {
+  if (Platform.OS !== 'android') return;
+  await setNotificationChannelAsync(KENH, {
+    name: 'Lá bài hôm nay',
+    importance: AndroidImportance.DEFAULT,
+    vibrationPattern: [0, 250, 250, 250],
+    lightColor: '#D4A84B',
+  });
+}
+
+/** Đã được cấp quyền chưa. Không hỏi, chỉ xem. */
+export async function daCoQuyen(): Promise<boolean> {
+  if (XEM_THU) return false;
+  try {
+    const { granted } = await getPermissionsAsync();
+    return granted;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Hỏi quyền gửi thông báo.
+ *
+ * Chỉ gọi hàm này SAU khi đã giải thích cho khách vì sao cần. Hộp thoại của hệ
+ * điều hành chỉ hiện đúng một lần, khách bấm Không là lần sau phải vào tận phần
+ * cài đặt của máy mới bật lại được.
+ */
+export async function xinQuyen(): Promise<boolean> {
+  if (XEM_THU) return false;
+  try {
+    const dangCo = await getPermissionsAsync();
+    if (dangCo.granted) return true;
+    if (!dangCo.canAskAgain) return false;
+
+    const { granted } = await requestPermissionsAsync();
+    if (granted) await taoKenh();
+    return granted;
+  } catch (e) {
+    console.warn('[thong-bao] xin quyen that bai:', e);
+    return false;
+  }
+}
+
+/**
+ * Hẹn lời nhắc lá bài mỗi ngày vào đúng giờ khách chọn.
+ *
+ * Lịch kiểu DAILY lặp lại NGUYÊN VĂN nội dung đã hẹn, hệ điều hành không có
+ * đường đổi chữ giữa chừng. Nên câu chọn ở đây là câu khách đọc mỗi sáng cho tới
+ * lần hẹn sau — mảng năm câu bên trên trước đây chỉ có tác dụng đúng một lần.
+ *
+ * Cách chữa: mỗi lần mở app thì hẹn lại bằng một câu khác, xem `doiLoiNhac`.
+ * Vẫn giữ kiểu DAILY chứ không rải sẵn N ngày, vì rải sẵn thì người lâu không mở
+ * app sẽ hết lời nhắc — mà đó đúng là người cần được nhắc nhất.
+ */
+export async function datLichLaBai(gioNhac: string | null): Promise<boolean> {
+  if (XEM_THU) return false;
+  if (!(await daCoQuyen())) return false;
+
+  const dangDung = await tieuDeDangHen();
+  await taoKenh();
+  await huyLichLaBai();
+
+  const { gio, phut } = tachGio(gioNhac);
+  const loi = chonLoiNhac(dangDung);
+
+  await scheduleNotificationAsync({
+    identifier: MA_NHAC_LA_BAI,
+    content: { title: loi.tieuDe, body: loi.than, data: { man: '/hom-nay' } },
+    trigger: {
+      type: SchedulableTriggerInputTypes.DAILY,
+      hour: gio,
+      minute: phut,
+      channelId: KENH,
+    },
+  });
+  return true;
+}
+
+/**
+ * Bốc một câu khác câu đang treo.
+ *
+ * Bốc thuần ngẫu nhiên trong năm câu thì cứ năm lần có một lần ra lại đúng câu
+ * cũ, mà hai sáng liền nhau giống hệt là thứ khách nhận ra ngay.
+ */
+function chonLoiNhac(tieuDeCu: string | null) {
+  const con = LOI_NHAC.filter((l) => l.tieuDe !== tieuDeCu);
+  const tu = con.length ? con : LOI_NHAC;
+  return tu[Math.floor(Math.random() * tu.length)];
+}
+
+/** Tiêu đề của lời nhắc đang treo, để lần hẹn sau tránh lặp lại nó. */
+async function tieuDeDangHen(): Promise<string | null> {
+  try {
+    const ds = await getAllScheduledNotificationsAsync();
+    const dang = ds.find((n) => n.identifier === MA_NHAC_LA_BAI);
+    return dang?.content?.title ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Mở app thì hẹn lại bằng câu khác, nhưng CHỈ khi đang thật sự có lịch.
+ *
+ * Không có lịch mà gọi hàm này là tự dưng bật thông báo cho người đã tắt.
+ */
+export async function doiLoiNhac(gioNhac: string | null) {
+  if (XEM_THU) return;
+  try {
+    if (!(await dangHenLaBai())) return;
+    await datLichLaBai(gioNhac);
+  } catch (e) {
+    console.warn('[thong-bao] doi loi nhac that bai:', e);
+  }
+}
+
+/**
+ * Máy vừa đổi sang người khác: hẹn lại lời nhắc sáng theo hồ sơ của NGƯỜI MỚI.
+ *
+ * Khác `doiLoiNhac` ở chỗ đây là lệnh đồng bộ, không phải lệnh đổi câu chữ.
+ * Lịch nhắc nằm ở hệ điều hành chứ không nằm dưới máy chủ, nên đăng xuất bao
+ * nhiêu lần nó vẫn treo đó — người mới cầm máy vẫn bị đánh thức theo giờ người
+ * cũ đặt, và `doiLoiNhac` thì cố ý không đụng tới vì nó chỉ đổi câu cho lịch
+ * đang có.
+ *
+ * Cột `nhac_la_bai` dưới máy chủ mặc định là bật, nên chỉ tắt khi nó ghi rõ
+ * false — giống hệt cách màn cài đặt đang hiểu cột này.
+ */
+export async function dongBoNhacLaBai(h: { nhac_la_bai?: boolean | null; gio_nhac?: string | null } | null) {
+  if (XEM_THU) return;
+  try {
+    if (!h || h.nhac_la_bai === false || !(await daCoQuyen())) {
+      await huyLichLaBai();
+      return;
+    }
+    await datLichLaBai(h.gio_nhac ?? '07:00');
+  } catch (e) {
+    console.warn('[thong-bao] dong bo nhac la bai that bai:', e);
+  }
+}
+
+export async function huyLichLaBai() {
+  if (XEM_THU) return;
+  try {
+    await cancelScheduledNotificationAsync(MA_NHAC_LA_BAI);
+  } catch {
+    // Chưa hẹn lần nào thì huỷ sẽ báo lỗi. Không phải chuyện gì.
+  }
+}
+
+/** Đang hẹn lời nhắc nào chưa. Dùng để màn cài đặt hiện đúng trạng thái thật. */
+export async function dangHenLaBai(): Promise<boolean> {
+  if (XEM_THU) return false;
+  try {
+    const ds = await getAllScheduledNotificationsAsync();
+    return ds.some((n) => n.identifier === MA_NHAC_LA_BAI);
+  } catch {
+    return false;
+  }
+}
+
+// ---------------------------------------------------------------- tin gửi theo đợt
+
+/** Chạy được phần gửi theo đợt không. Trả về lý do nếu không, để màn cài đặt nói rõ. */
+export function vuongMacMaDay(): string | null {
+  if (XEM_THU) return 'Đang ở chế độ xem thử.';
+  if (isRunningInExpoGo()) {
+    return 'Expo Go không nhận được tin gửi theo đợt. Phần này chạy khi đã đóng gói app thật.';
+  }
+  if (!maDuAn()) return 'Chưa chạy eas init nên chưa có mã dự án.';
+  return null;
+}
+
+function maDuAn(): string | null {
+  const ma =
+    Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId ?? null;
+  // Giá trị giữ chỗ trong app.json không phải mã thật.
+  if (!ma || String(ma).startsWith('CHUA_TAO')) return null;
+  return String(ma);
+}
+
+/**
+ * Lấy mã thiết bị rồi lưu lên máy chủ, để trang quản trị gửi tin theo đợt được.
+ *
+ * Nạp `expo-notifications` ở đây chứ không nạp ở đầu file, vì nạp cả gói là kéo
+ * theo module chạy phụ gây lỗi trong Expo Go. Tới dòng này thì đã qua
+ * `vuongMacMaDay` nên chắc chắn không còn ở Expo Go nữa.
+ *
+ * Nuốt mọi lỗi: không lấy được mã thì khách vẫn dùng app bình thường, chỉ là
+ * không nhận được tin gửi theo đợt.
+ */
+/**
+ * Gỡ máy này khỏi danh sách nhận tin, trước khi đăng xuất.
+ *
+ * Thiếu bước này thì thầy đăng xuất xong MÁY VẪN NHẬN thông báo đơn mới, vì
+ * dòng trong bảng `thiet_bi` còn trỏ mã máy về tài khoản cũ. Nó chỉ im khi có
+ * người khác đăng nhập trên đúng máy đó và ghi đè lên.
+ *
+ * Phải gọi TRƯỚC `signOut`: xoá dòng của mình cần thẻ đăng nhập còn hiệu lực,
+ * đăng xuất rồi thì luật khoá dòng chặn lại.
+ *
+ * Nuốt mọi lỗi: gỡ không được cũng đừng cản khách đăng xuất.
+ */
+export async function goMaDay() {
+  if (XEM_THU) return;
+  try {
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return;
+    await supabase.from('thiet_bi').delete().eq('nguoi_dung', u.user.id);
+  } catch (e) {
+    console.warn('[thong-bao] go ma thiet bi that bai:', e);
+  }
+}
+
+export async function dangKyMaDay(): Promise<string | null> {
+  if (vuongMacMaDay()) return null;
+  if (!(await daCoQuyen())) return null;
+
+  try {
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return null;
+
+    const { getExpoPushTokenAsync } = await import('expo-notifications');
+    const { data: ma } = await getExpoPushTokenAsync({ projectId: maDuAn()! });
+    if (!ma) return null;
+
+    const { error } = await supabase.from('thiet_bi').upsert(
+      {
+        ma_day: ma,
+        nguoi_dung: u.user.id,
+        nen_tang: Platform.OS,
+        cap_nhat_luc: new Date().toISOString(),
+      },
+      { onConflict: 'ma_day' }
+    );
+    if (error) {
+      // Trả null khi GHI hỏng, không trả mã.
+      //
+      // Trước đây vẫn trả mã dù lệnh ghi hỏng, nên chỗ gọi tưởng đã xong. Với
+      // thầy thì đó là hỏng im lặng tệ nhất: màn hình sạch trơn, không cảnh báo
+      // gì, mà máy chủ không biết đẩy tin về đâu.
+      console.warn('[thong-bao] luu ma thiet bi that bai:', error.message);
+      return null;
+    }
+    return ma;
+  } catch (e) {
+    console.warn('[thong-bao] lay ma thiet bi that bai:', e);
+    return null;
+  }
+}

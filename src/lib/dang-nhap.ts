@@ -1,0 +1,269 @@
+/**
+ * Đăng nhập bằng Google và Apple, và gắn tài khoản thật vào hồ sơ ẩn danh.
+ *
+ * Đi bằng luồng OAuth qua trình duyệt chứ không dùng thư viện native của Google
+ * hay Apple. Lý do: app đã có sẵn `expo-web-browser`, `expo-linking` và địa chỉ
+ * `omora://`, nên không phải thêm thư viện nào. Thêm thư viện native là đổi vân
+ * tay, mà đổi vân tay thì bản đang sống trên chợ mất đường nhận cập nhật.
+ *
+ * Luồng chạy:
+ *   1. Hỏi Supabase lấy địa chỉ trang đăng nhập của nhà cung cấp
+ *   2. Mở trang đó trong trình duyệt hệ thống
+ *   3. Khách đăng nhập xong, trình duyệt trả về `omora://dang-nhap-xong?code=...`
+ *   4. Đổi mã đó lấy phiên đăng nhập
+ *
+ * Mã chỉ dùng được một lần, và đổi mã cần thêm một chuỗi bí mật chỉ app giữ
+ * (PKCE). Nhờ vậy ai chặn được địa chỉ trả về cũng không vào được tài khoản.
+ */
+
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
+
+import {
+  docLoi,
+  laKhachTuChoi,
+  laTrungDanhTinh,
+  layMa,
+} from '@/lib/duong-tra-ve';
+import {
+  ghiDauTaiKhoanThat,
+  PhienHetHan,
+  supabase,
+  xoaDauTaiKhoanThat,
+} from '@/lib/supabase';
+import { goMaDay } from '@/lib/thong-bao';
+
+export type NhaCungCap = 'google' | 'apple';
+
+const TEN: Record<NhaCungCap, string> = { google: 'Google', apple: 'Apple' };
+
+/**
+ * Địa chỉ trình duyệt quay về sau khi đăng nhập xong.
+ *
+ * Chuỗi này khai ở Supabase: Authentication → URL Configuration → Redirect URLs.
+ *
+ * ĐỪNG khai nó bên Google Cloud. Google không bao giờ gọi thẳng vào app: nó trả
+ * về cho Supabase trước, rồi Supabase mới đẩy tiếp về đây. Nên bên Google phải
+ * khai địa chỉ của Supabase:
+ *
+ *     https://dgoyowwhblqmdsnpxwgo.supabase.co/auth/v1/callback
+ *
+ * Khai nhầm `omora://...` vào ô của Google là Google từ chối ngay từ đầu, vì nó
+ * chỉ nhận địa chỉ bắt đầu bằng https.
+ */
+export function duongQuayVe(): string {
+  return Linking.createURL('dang-nhap-xong');
+}
+
+/** Khách tự bấm huỷ. Tách riêng để màn hình không hiện chữ đỏ doạ người ta. */
+export class KhachHuy extends Error {
+  constructor() {
+    super('Đã huỷ đăng nhập');
+    this.name = 'KhachHuy';
+  }
+}
+
+/**
+ * Tài khoản vừa chọn đã thuộc về một hồ sơ Omora khác.
+ *
+ * Supabase không cho một danh tính thuộc về hai hồ sơ, nên không gắn thêm được.
+ * Đây KHÔNG phải lỗi của khách và cũng không phải ngõ cụt: còn hai đường đi
+ * tiếp, và màn hình phải đưa ra cho khách chọn chứ đừng chỉ báo lỗi rồi đứng im.
+ */
+export class DaCoHoSoKhac extends Error {
+  constructor() {
+    super('Tài khoản này đã có một hồ sơ Omora khác');
+    this.name = 'DaCoHoSoKhac';
+  }
+}
+
+/**
+ * Chạy một vòng OAuth.
+ *
+ * `gan` quyết định cách gọi:
+ *   - false: đăng nhập mới, tạo tài khoản nếu chưa có
+ *   - true: GẮN nhà cung cấp vào tài khoản đang đăng nhập
+ *
+ * Phải tách hai đường này. Khách đang dùng ẩn danh mà gọi đăng nhập mới thì
+ * Supabase tạo một tài khoản khác, còn hồ sơ và toàn bộ lịch sử rút bài nằm lại
+ * ở tài khoản ẩn danh cũ — khách mở lên thấy trắng trơn và tưởng mất hết. Gắn
+ * thì giữ nguyên mã người dùng, nên không có gì phải chép qua.
+ */
+async function chayOAuth(nha: NhaCungCap, gan: boolean): Promise<void> {
+  const ve = duongQuayVe();
+  const tuyChon = {
+    redirectTo: ve,
+    skipBrowserRedirect: true,
+    // Bắt Google hiện bảng chọn tài khoản.
+    //
+    // Mặc định nó im lặng dùng luôn tài khoản đang đăng nhập sẵn trên máy, nên
+    // khách muốn đổi sang tài khoản khác thì không có đường nào: bấm bao nhiêu
+    // lần cũng ra đúng tài khoản cũ. Apple thì luôn tự hiện bảng chọn nên không
+    // cần, và nhét thêm tham số lạ vào có khi nó từ chối.
+    ...(nha === 'google' ? { queryParams: { prompt: 'select_account' } } : {}),
+  };
+
+  const { data, error } = gan
+    ? await supabase.auth.linkIdentity({ provider: nha, options: tuyChon })
+    : await supabase.auth.signInWithOAuth({ provider: nha, options: tuyChon });
+  if (error) throw doiLoi(error, gan);
+  if (!data?.url) throw new Error(`Chưa bật đăng nhập ${TEN[nha]} ở phía máy chủ.`);
+
+  const duong = await moVaCho(data.url, ve);
+  if (!duong) throw new KhachHuy();
+
+  // Xét lỗi TRƯỚC khi hỏi mã.
+  //
+  // Supabase báo hỏng bằng cách nhét lỗi vào chính địa chỉ trả về chứ không
+  // ném qua SDK. Code cũ chỉ hỏi ô `code`, không thấy thì kêu "thiếu mã đăng
+  // nhập" — trong khi địa chỉ đang cầm sẵn lý do thật.
+  const loi = loiTrongDuong(duong, gan);
+  if (loi) throw loi;
+
+  const ma = layMa(duong);
+  if (!ma) throw new Error('Trình duyệt quay về nhưng thiếu mã đăng nhập.');
+
+  const { error: loiDoi } = await supabase.auth.exchangeCodeForSession(ma);
+  if (loiDoi) throw doiLoi(loiDoi, gan);
+
+  // Ghi dấu máy này đã có tài khoản thật. Từ đây trở đi, thẻ chết thì app báo
+  // phiên hết hạn chứ không lặng lẽ đẻ ra một danh tính ẩn danh mới.
+  await ghiDauTaiKhoanThat();
+
+  // Lấy thẻ đăng nhập mới sau khi gắn. Thẻ đang cầm được cấp lúc còn ẩn danh,
+  // nên mấy thông tin trong đó vẫn là của lúc đó. Không làm bước này thì gắn
+  // xong màn Cá nhân vẫn tưởng khách chưa đăng nhập.
+  await supabase.auth.refreshSession().catch(() => {});
+}
+
+/**
+ * Mở trình duyệt đăng nhập và chờ địa chỉ quay về. Trả null nếu khách huỷ.
+ *
+ * Bắt ở HAI đường vì hệ điều hành không phải lúc nào cũng trả qua đường thứ
+ * nhất:
+ *
+ *   1. `openAuthSessionAsync` trả thẳng địa chỉ cho chỗ gọi — đường chuẩn.
+ *   2. Hệ điều hành đẩy `omora://...` vào app như một đường dẫn sâu, và
+ *      expo-router nhận trước. Khi đó đường thứ nhất không bao giờ trả về mã.
+ *
+ * Đã gặp thật: khách chọn tài khoản Google xong bị đá về màn chủ, mà tài khoản
+ * không được nhận — vì mã đăng nhập đi theo đường thứ hai rồi trôi mất.
+ *
+ * Nghe cả hai, cái nào tới trước thì dùng, rồi dọn cả hai.
+ */
+async function moVaCho(duongDangNhap: string, ve: string): Promise<string | null> {
+  let tra: (duong: string) => void = () => {};
+  const choDuongDanSau = new Promise<string>((r) => {
+    tra = r;
+  });
+
+  const nghe = Linking.addEventListener('url', (sk) => {
+    if (sk.url.startsWith(ve) || sk.url.includes('code=')) tra(sk.url);
+  });
+
+  try {
+    const kq = await Promise.race([
+      WebBrowser.openAuthSessionAsync(duongDangNhap, ve).then((r) =>
+        r.type === 'success' ? r.url : null
+      ),
+      choDuongDanSau,
+    ]);
+    // Bắt được qua đường dẫn sâu thì trình duyệt vẫn đang mở, phải tự đóng.
+    if (kq) WebBrowser.dismissBrowser();
+    return kq;
+  } finally {
+    nghe.remove();
+  }
+}
+
+/**
+ * Đổi lỗi nằm trong địa chỉ trả về thành đúng loại lỗi màn hình đang chờ.
+ *
+ * Ca hay gặp nhất: khách đang ẩn danh, gắn một tài khoản Google mà chính họ
+ * từng dùng để đăng nhập trước đó. Supabase không cho một danh tính thuộc hai
+ * hồ sơ nên từ chối, và app có sẵn một hộp thoại ba lựa chọn cho ca này — phải
+ * trả đúng `DaCoHoSoKhac` thì hộp đó mới hiện ra.
+ */
+function loiTrongDuong(duong: string, gan: boolean): Error | null {
+  const l = docLoi(duong);
+  if (!l) return null;
+  if (gan && laTrungDanhTinh(l.ma, l.ta)) return new DaCoHoSoKhac();
+  // Từ chối ở trang nhà cung cấp cũng là khách tự huỷ, đừng doạ bằng chữ đỏ.
+  if (laKhachTuChoi(l.ma, l.ta)) return new KhachHuy();
+  return new Error(l.ta || `Đăng nhập không thành công (${l.ma}).`);
+}
+
+/** Nhận ra trường hợp danh tính đã thuộc hồ sơ khác, để màn hình xử riêng. */
+function doiLoi(e: unknown, gan: boolean): unknown {
+  if (!gan) return e;
+  const tho = e instanceof Error ? e.message : String(e);
+  return /already|exists|duplicate|identity_already/i.test(tho) ? new DaCoHoSoKhac() : e;
+}
+
+/** Đăng nhập mới. Dùng ở màn mở đầu, lúc khách chưa chọn gì. */
+export const dangNhapGoogle = () => chayOAuth('google', false);
+export const dangNhapApple = () => chayOAuth('apple', false);
+
+/**
+ * Gắn tài khoản thật vào hồ sơ ẩn danh đang dùng.
+ *
+ * Dùng ở màn Cá nhân. Giữ nguyên mã người dùng nên hồ sơ, lịch sử rút bài và số
+ * lượt còn lại trong ngày đều không suy suyển.
+ *
+ * Cần bật "Manual linking" trong Supabase: Authentication → Providers → phần
+ * Advanced. Chưa bật thì lời gọi này báo lỗi, chứ không âm thầm tạo tài khoản
+ * mới — thà hỏng rõ còn hơn mất dữ liệu lặng lẽ.
+ */
+export const ganGoogle = () => chayOAuth('google', true);
+export const ganApple = () => chayOAuth('apple', true);
+
+/** Đổi lỗi máy móc thành câu người đọc hiểu được. */
+export function loiDeHieu(e: unknown): string {
+  if (e instanceof KhachHuy) return e.message;
+  if (e instanceof PhienHetHan) {
+    return (
+      'Phiên đăng nhập trên máy này đã hết hạn. Đăng nhập lại bằng đúng tài khoản cũ ' +
+      'thì hồ sơ và lịch hẹn của bạn còn nguyên.'
+    );
+  }
+  const tho = e instanceof Error ? e.message : String(e);
+  if (/already|exists|duplicate|identity_already/i.test(tho)) {
+    // Hay gặp nhất: khách từng bấm đăng nhập ở màn mở đầu bằng chính tài khoản
+    // này, nên nó đã thành một hồ sơ riêng. Supabase không cho một danh tính
+    // thuộc về hai hồ sơ, nên phải chọn giữ cái nào.
+    return (
+      'Tài khoản này đã dùng cho một hồ sơ khác rồi, nên không gắn thêm được. ' +
+      'Muốn dùng nó thì đăng xuất rồi đăng nhập thẳng bằng nó — nhưng hồ sơ đang ' +
+      'mở ở máy này sẽ không theo sang. Hoặc chọn một tài khoản khác.'
+    );
+  }
+  if (/not enabled|unsupported provider/i.test(tho)) {
+    return 'Cách đăng nhập này chưa được bật. Báo lại giúp chúng tôi.';
+  }
+  if (/network|fetch|timeout/i.test(tho)) {
+    return 'Mạng đang chập chờn. Thử lại giúp tôi.';
+  }
+  return tho;
+}
+
+/**
+ * Đăng xuất, để đổi sang tài khoản khác.
+ *
+ * KHÔNG mất gì cả. Hồ sơ và lịch sử rút bài nằm trên máy chủ, gắn với tài khoản
+ * Google hay Apple đó; đăng nhập lại là thấy y nguyên. Chữ trên nút phải nói rõ
+ * điều này, không thì khách sợ không dám bấm.
+ *
+ * Màn gốc nghe onAuthStateChange nên đăng xuất xong nó tự đưa về màn chọn, ở
+ * đây không phải điều hướng gì.
+ */
+export async function dangXuat(): Promise<void> {
+  // Gỡ máy khỏi danh sách nhận tin TRƯỚC khi đăng xuất: xoá dòng của mình cần
+  // thẻ đăng nhập còn hiệu lực. Thiếu bước này thì khách đăng xuất rồi vẫn nhận
+  // tin gửi theo đợt, vì mã máy còn trỏ về tài khoản cũ.
+  await goMaDay();
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
+  // Xóa dấu: đây là lần rời đi có chủ ý, nên lần sau bấm "Dùng ngay" phải tạo
+  // được hồ sơ ẩn danh bình thường.
+  await xoaDauTaiKhoanThat();
+}
