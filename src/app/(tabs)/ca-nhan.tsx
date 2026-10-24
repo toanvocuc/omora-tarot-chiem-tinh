@@ -8,6 +8,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BieuTuongCung } from '@/components/bieu-tuong-cung';
 import { DongPhienBan } from '@/components/dong-phien-ban';
 import { KhoiTaiKhoan } from '@/components/khoi-tai-khoan';
+import { XEM_THU } from '@/lib/xem-thu';
 import { DangTai } from '@/components/nen';
 import { dangHenLaBai } from '@/lib/thong-bao';
 import { NenTroiSao } from '@/components/nen-anh';
@@ -95,8 +96,13 @@ export default function CaNhan() {
             </View>
 
             {/* Hai bộ mặt: đang ẩn danh thì mời gắn tài khoản, đã đăng nhập
-                thì hiện đang dùng tài khoản nào kèm nút đăng xuất. */}
-            <KhoiTaiKhoan xongThi={taiLai} />
+                thì hiện đang dùng tài khoản nào kèm nút đăng xuất.
+
+                Bản xem thử giấu hẳn khối này. Đăng nhập Google cần khoá máy
+                chủ thật, mà bản xem thử cố ý không mang khoá nào — bấm vào
+                chỉ nhận 401 rồi hiện lỗi, trông như app hỏng. Thà không có
+                nút còn hơn có một nút chắc chắn hỏng. */}
+            {XEM_THU ? null : <KhoiTaiKhoan xongThi={taiLai} />}
 
             <Muc nhan="Cá nhân hoá" />
             <Nhom>

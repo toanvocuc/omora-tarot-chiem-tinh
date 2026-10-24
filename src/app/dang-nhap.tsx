@@ -9,6 +9,7 @@ import { Logo } from '@/components/logo';
 import { BauTroiDong } from '@/components/bau-troi-dong';
 import { Nut } from '@/components/nen';
 import { NutDangNhap } from '@/components/nut-dang-nhap';
+import { XEM_THU } from '@/lib/xem-thu';
 import { CHU, MAU } from '@/constants/giao-dien';
 import { dangNhapApple, dangNhapGoogle, KhachHuy, loiDeHieu } from '@/lib/dang-nhap';
 import { datCoHoSo, docHoSo } from '@/lib/ho-so';
@@ -88,22 +89,29 @@ export default function DangNhap() {
                 onPress={() => thu('apple')}
               />
             ) : null}
-            <NutDangNhap
-              hang="google"
-              nhan="Đăng nhập bằng Google"
-              dangChay={dangChay === 'google'}
-              tat={dangChay !== null && dangChay !== 'google'}
-              onPress={() => thu('google')}
-            />
+            {/* Bản xem thử không mang khoá máy chủ, nên nút này bấm vào chỉ
+                nhận 401. Giấu luôn, cùng cả dòng "hoặc" — bỏ mỗi nút mà để
+                dòng ngăn lại thì còn một gạch ngăn giữa hư không. */}
+            {XEM_THU ? null : (
+              <NutDangNhap
+                hang="google"
+                nhan="Đăng nhập bằng Google"
+                dangChay={dangChay === 'google'}
+                tat={dangChay !== null && dangChay !== 'google'}
+                onPress={() => thu('google')}
+              />
+            )}
           </View>
 
-          <View className="my-5 flex-row items-center gap-3">
-            <View style={{ backgroundColor: MAU.vien }} className="h-px flex-1" />
-            <Text style={{ fontFamily: CHU.than }} className="text-xs text-chu-mo">
-              hoặc
-            </Text>
-            <View style={{ backgroundColor: MAU.vien }} className="h-px flex-1" />
-          </View>
+          {XEM_THU ? null : (
+            <View className="my-5 flex-row items-center gap-3">
+              <View style={{ backgroundColor: MAU.vien }} className="h-px flex-1" />
+              <Text style={{ fontFamily: CHU.than }} className="text-xs text-chu-mo">
+                hoặc
+              </Text>
+              <View style={{ backgroundColor: MAU.vien }} className="h-px flex-1" />
+            </View>
+          )}
 
           <Nut
             nhan="Dùng ngay, không cần tài khoản"
