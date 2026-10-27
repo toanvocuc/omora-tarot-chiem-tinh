@@ -19,8 +19,9 @@
 
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
+import { hoi } from '@/lib/hoi-lai';
 import { ChuThan, DangTai, Khoi, ManHinh, Nhan, Nut, Trong, VanNgan } from '@/components/nen';
 import { CHU, MAU } from '@/constants/giao-dien';
 import { DonGhim, KhongConDon } from '@/components/don-ghim';
@@ -119,18 +120,18 @@ export default function LichCuaToi() {
   );
 
   function hoiHuy(yc: YeuCau) {
-    Alert.alert(
+    hoi(
       'Huỷ yêu cầu này?',
       'Thầy sẽ không nhận được nữa. Nó chuyển xuống mục Lịch sử, bạn vẫn xem lại được.',
       [
-        { text: 'Giữ lại', style: 'cancel' },
+        { nhan: 'Giữ lại', kieu: 'bo' },
         {
-          text: 'Huỷ yêu cầu',
-          style: 'destructive',
+          nhan: 'Huỷ yêu cầu',
+          kieu: 'manh',
           onPress: () =>
             huyYeuCau(yc.ma)
               .then(lamMoi)
-              .catch(() => Alert.alert('Chưa huỷ được', 'Kiểm tra mạng rồi thử lại giúp tôi.')),
+              .catch(() => hoi('Chưa huỷ được', 'Kiểm tra mạng rồi thử lại giúp tôi.')),
         },
       ]
     );

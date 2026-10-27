@@ -18,10 +18,10 @@ import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { HopThoai } from '@/components/hop-thoai';
 import { Chuong } from '@/components/chuong';
 import { CHU, MAU } from '@/constants/giao-dien';
 import { khiDoiTaiKhoan } from '@/lib/doi-tai-khoan';
-import { daVaoXemThu, ngheDaVao } from '@/lib/ho-so-xem-thu';
 import { datCoHoSo, docHoSo } from '@/lib/ho-so';
 import { goHetNhacHen } from '@/lib/nhac-hen';
 import { hoSoThayCuaToi } from '@/lib/thay';
@@ -75,10 +75,7 @@ export default function RootLayout() {
     setLoi(null);
     setXong(false);
     (XEM_THU
-      ? // Bản xem thử: "có phiên" nghĩa là người xem đã bấm Dùng ngay ở lần
-        // trước. Trả cứng true như cũ thì họ bị thả thẳng vào app với một hồ
-        // sơ trống, không bao giờ được mời tạo hồ sơ của chính mình.
-        daVaoXemThu()
+      ? Promise.resolve(true)
       : supabase.auth.getSession().then(({ data }) => Boolean(data.session))
     )
       .then(async (co) => {
@@ -169,8 +166,7 @@ export default function RootLayout() {
   // Nghe thẳng Supabase chứ không tự gọi lại, vì cách này bắt được cả lúc đăng
   // xuất lẫn lúc phiên hết hạn.
   useEffect(() => {
-    // Bản xem thử không có phiên Supabase nào để nghe, nên nghe cờ cục bộ.
-    if (XEM_THU) return ngheDaVao(setCoPhien);
+    if (XEM_THU) return;
     const { data } = supabase.auth.onAuthStateChange((_, phien) => {
       setCoPhien(Boolean(phien));
       if (!phien) {
@@ -288,6 +284,12 @@ export default function RootLayout() {
           nhập hay đang khai ngày sinh thì chưa có thông báo nào để xem, mà một
           bong bóng lạ nổi lên lúc đó chỉ làm họ phân tâm. */}
       {coPhien && doan[0] !== 'nhap-ho-so' ? <Chuong /> : null}
+
+      {/* Hộp thoại hỏi lại, thay cho `Alert.alert` — cái đó là hàm RỖNG trên
+          web, xem `lib/hoi-lai.ts`. Gắn ở đây, ngoài `Stack`, để nó nổi trên
+          mọi màn và sống qua các lần chuyển màn. KHÔNG kèm điều kiện `coPhien`
+          như chuông: màn đăng nhập và màn nhập hồ sơ cũng cần báo lỗi. */}
+      <HopThoai />
     </GestureHandlerRootView>
   );
 }

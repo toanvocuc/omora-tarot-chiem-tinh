@@ -17,8 +17,9 @@ import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, Linking, Pressable, Text, View } from 'react-native';
+import { Linking, Pressable, Text, View } from 'react-native';
 
+import { hoi } from '@/lib/hoi-lai';
 import { ChuThan, DangTai, Khoi, ManHinh, Nut, Trong } from '@/components/nen';
 import { CHU, MAU } from '@/constants/giao-dien';
 import { dungTinNhan, giaTheoSoLuong, tien, tongTien, type DongQuanTam } from '@/lib/gian-hang';
@@ -68,13 +69,13 @@ export default function ManQuanTam() {
       await Clipboard.setStringAsync(chu);
       datDaChep(true);
     } catch {
-      Alert.alert('Chưa chép được', 'Máy không cho chép lúc này. Thử lại giúp tôi.');
+      hoi('Chưa chép được', 'Máy không cho chép lúc này. Thử lại giúp tôi.');
     }
   }
 
   function moZalo() {
     if (!ZALO) {
-      Alert.alert(
+      hoi(
         'Chưa có kênh Zalo',
         'Cửa hàng chưa khai Zalo trong ứng dụng. Danh sách đã được chép sẵn, bạn dán vào kênh liên lạc của cửa hàng giúp tôi.'
       );
@@ -82,16 +83,16 @@ export default function ManQuanTam() {
     }
     const duong = ZALO.startsWith('http') ? ZALO : `https://zalo.me/${ZALO.replace(/\D/g, '')}`;
     Linking.openURL(duong).catch(() =>
-      Alert.alert('Chưa mở được Zalo', 'Bạn mở Zalo rồi dán danh sách vào giúp tôi.')
+      hoi('Chưa mở được Zalo', 'Bạn mở Zalo rồi dán danh sách vào giúp tôi.')
     );
   }
 
   function hoiXoaHet() {
-    Alert.alert('Xoá hết danh sách?', 'Mấy món bạn đã gom sẽ bỏ đi hết.', [
-      { text: 'Giữ lại', style: 'cancel' },
+    hoi('Xoá hết danh sách?', 'Mấy món bạn đã gom sẽ bỏ đi hết.', [
+      { nhan: 'Giữ lại', kieu: 'bo' },
       {
-        text: 'Xoá hết',
-        style: 'destructive',
+        nhan: 'Xoá hết',
+        kieu: 'manh',
         onPress: () => {
           xoaHetQuanTam();
           datDaChep(false);

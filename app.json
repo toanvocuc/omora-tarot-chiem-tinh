@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Omora",
+    "name": "Omora Soul",
     "slug": "omora",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -60,7 +60,6 @@
       ]
     ],
     "experiments": {
-      "baseUrl": "/omora-tarot-chiem-tinh",
       "typedRoutes": true,
       "reactCompiler": true
     },

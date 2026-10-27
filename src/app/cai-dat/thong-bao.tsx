@@ -1,7 +1,8 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Alert, Linking, Pressable, Switch, Text, View } from 'react-native';
+import { Linking, Pressable, Switch, Text, View } from 'react-native';
 
+import { hoi } from '@/lib/hoi-lai';
 import { DangTai, Khoi, ManHinh, Nhan, Trong } from '@/components/nen';
 import { CHU, MAU } from '@/constants/giao-dien';
 import { luuHoSo, useHoSo } from '@/lib/ho-so';
@@ -72,7 +73,7 @@ export default function CaiDatThongBao() {
       await viec();
     } catch (e) {
       console.warn('[thong-bao]', e);
-      Alert.alert('Chưa đổi được', 'Thử lại giúp tôi, hoặc kiểm tra mạng.');
+      hoi('Chưa đổi được', 'Thử lại giúp tôi, hoặc kiểm tra mạng.');
     }
   }
 
@@ -122,17 +123,17 @@ export default function CaiDatThongBao() {
         //
         // Trước đây chỗ này gọi mở cài đặt rồi nuốt mọi lỗi. Máy nào không mở
         // được là khách bấm mà chẳng thấy gì xảy ra, tưởng app hỏng.
-        Alert.alert(
+        hoi(
           'Cần bật trong cài đặt máy',
           'Máy đang chặn thông báo của Omora. Bật lại trong phần cài đặt của ' +
             'máy rồi quay lại đây.',
           [
-            { text: 'Để sau', style: 'cancel' },
+            { nhan: 'Để sau', kieu: 'bo' },
             {
-              text: 'Mở cài đặt',
+              nhan: 'Mở cài đặt',
               onPress: () =>
                 Linking.openSettings().catch(() =>
-                  Alert.alert(
+                  hoi(
                     'Không mở được',
                     'Vào Cài đặt máy → Ứng dụng → Omora → Thông báo để bật.'
                   )

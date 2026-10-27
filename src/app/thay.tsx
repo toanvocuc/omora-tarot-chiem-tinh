@@ -15,17 +15,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Linking,
-  Modal,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Linking, Modal, Pressable, Text, TextInput, View } from 'react-native';
 
+import { hoi } from '@/lib/hoi-lai';
 import { ChuThan, DangTai, Khoi, ManHinh, Nhan, Nut, Trong, VanNgan } from '@/components/nen';
 import { BieuTuongCung } from '@/components/bieu-tuong-cung';
 import { CHU, MAU } from '@/constants/giao-dien';
@@ -171,17 +163,17 @@ export default function ManThay() {
   const maDonDuoc = useMemo(() => maDonDuocDon(dong ?? []), [dong]);
 
   function donMot(yc: YeuCau) {
-    Alert.alert(
+    hoi(
       'Dọn đơn này?',
       'Đơn chỉ biến mất khỏi danh sách của bạn. Khách vẫn xem lại được buổi này trong lịch sử của họ.',
       [
-        { text: 'Thôi', style: 'cancel' },
+        { nhan: 'Thôi', kieu: 'bo' },
         {
-          text: 'Dọn',
-          style: 'destructive',
+          nhan: 'Dọn',
+          kieu: 'manh',
           onPress: () =>
             donBot([yc.ma]).catch(() =>
-              Alert.alert('Chưa dọn được', 'Kiểm tra mạng rồi thử lại giúp tôi.')
+              hoi('Chưa dọn được', 'Kiểm tra mạng rồi thử lại giúp tôi.')
             ),
         },
       ]
@@ -189,17 +181,17 @@ export default function ManThay() {
   }
 
   function donHet() {
-    Alert.alert(
+    hoi(
       `Dọn ${maDonDuoc.length} đơn đã khép lại?`,
       'Mấy đơn đã xong và đã huỷ sẽ biến mất khỏi danh sách của bạn, danh sách còn lại đúng mấy đơn đang cần làm. Khách vẫn xem lại được lịch sử của họ.',
       [
-        { text: 'Thôi', style: 'cancel' },
+        { nhan: 'Thôi', kieu: 'bo' },
         {
-          text: 'Dọn hết',
-          style: 'destructive',
+          nhan: 'Dọn hết',
+          kieu: 'manh',
           onPress: () =>
             donBot(maDonDuoc).catch(() =>
-              Alert.alert('Chưa dọn được', 'Kiểm tra mạng rồi thử lại giúp tôi.')
+              hoi('Chưa dọn được', 'Kiểm tra mạng rồi thử lại giúp tôi.')
             ),
         },
       ]
@@ -213,7 +205,7 @@ export default function ManThay() {
       datCoQuyen(duoc);
       if (duoc) datDaSanSang(Boolean(await dangKyMaDay()));
       else
-        Alert.alert(
+        hoi(
           'Máy đang chặn thông báo',
           'Hộp thoại xin quyền của hệ điều hành chỉ hiện một lần. Vào phần cài đặt của máy, tìm Omora rồi bật thông báo giúp tôi.'
         );
@@ -222,15 +214,15 @@ export default function ManThay() {
     }
   }
 
-  function doi(yc: YeuCau, sang: 'da_nhan' | 'da_xong' | 'da_huy', hoi: string) {
-    Alert.alert(hoi, `Khách sẽ thấy trạng thái mới trong app.`, [
-      { text: 'Thôi', style: 'cancel' },
+  function doi(yc: YeuCau, sang: 'da_nhan' | 'da_xong' | 'da_huy', cauHoi: string) {
+    hoi(cauHoi, `Khách sẽ thấy trạng thái mới trong app.`, [
+      { nhan: 'Thôi', kieu: 'bo' },
       {
-        text: 'Đồng ý',
+        nhan: 'Đồng ý',
         onPress: () =>
           thayDoiTrangThai(yc.ma, sang)
             .then(lamMoi)
-            .catch(() => Alert.alert('Chưa đổi được', 'Kiểm tra mạng rồi thử lại giúp tôi.')),
+            .catch(() => hoi('Chưa đổi được', 'Kiểm tra mạng rồi thử lại giúp tôi.')),
       },
     ]);
   }
@@ -256,15 +248,15 @@ export default function ManThay() {
     datDangTuChoi(null);
     thayDoiTrangThai(yc.ma, 'da_huy', lyDo)
       .then(lamMoi)
-      .catch(() => Alert.alert('Chưa gửi được', 'Kiểm tra mạng rồi thử lại giúp tôi.'));
+      .catch(() => hoi('Chưa gửi được', 'Kiểm tra mạng rồi thử lại giúp tôi.'));
   }
 
   function thoat() {
-    Alert.alert('Đăng xuất?', 'Bạn sẽ không nhận được thông báo đơn mới nữa.', [
-      { text: 'Ở lại', style: 'cancel' },
+    hoi('Đăng xuất?', 'Bạn sẽ không nhận được thông báo đơn mới nữa.', [
+      { nhan: 'Ở lại', kieu: 'bo' },
       {
-        text: 'Đăng xuất',
-        style: 'destructive',
+        nhan: 'Đăng xuất',
+        kieu: 'manh',
         onPress: () =>
           // Gỡ máy TRƯỚC khi đăng xuất: xoá dòng của mình cần thẻ còn hiệu lực.
           // Thiếu bước này thì đăng xuất xong máy vẫn rung mỗi khi có đơn mới.
@@ -277,7 +269,7 @@ export default function ManThay() {
             // người dùng máy này sau đó phải bấm "Dùng ngay" được bình thường.
             .then(xoaDauTaiKhoanThat)
             .then(() => router.replace('/dang-nhap'))
-            .catch(() => Alert.alert('Chưa đăng xuất được', 'Kiểm tra mạng rồi thử lại.')),
+            .catch(() => hoi('Chưa đăng xuất được', 'Kiểm tra mạng rồi thử lại.')),
       },
     ]);
   }

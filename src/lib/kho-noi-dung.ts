@@ -166,6 +166,16 @@ export type DongChuyenGia = {
   /** Máy chủ tự tính lại mỗi khi có đánh giá mới. Null khi chưa ai chấm. */
   diem_tb: number | null;
   so_danh_gia: number;
+  /**
+   * Ba cột bản tâm linh, CHỈ nhánh Android/web này đọc. Bản iOS không bao giờ
+   * đọc chúng — xem `supabase/migrations/0030_ban_tam_linh_cho_android.sql`.
+   *
+   * `useChuyenGia` đè chúng lên ba cột gốc ngay khi đọc xong, nên mọi màn phía
+   * sau cứ dùng `ten` / `chuyen_sau` / `gioi_thieu` như cũ.
+   */
+  ten_mo_rong: string | null;
+  chuyen_sau_mo_rong: string | null;
+  gioi_thieu_mo_rong: string | null;
 };
 
 /**
@@ -243,10 +253,34 @@ export const useConSo = () => useBang<DongConSo>('con_so_bieu_do');
 export const useTuVi = () => useBang<DongTuVi>('tu_vi_mau');
 
 /** Thầy đang nhận khách, xếp theo thứ tự đã định. */
+/**
+ * Danh sách chuyên gia, ĐÃ đè bản tâm linh lên bản sạch.
+ *
+ * Ba cột `_mo_rong` chỉ nhánh này đọc. Đè ngay ở đây, một lần, thay vì bắt
+ * từng màn tự nhớ: `(tabs)/index.tsx`, `thay.tsx`, `dat-lich.tsx` và
+ * `ho-so-thay.tsx` đều đọc `chuyen_sau`, sót một chỗ là hồ sơ hiện nửa nạc nửa
+ * mỡ — tên "Luna" mà chuyên sâu lại là "Tarot, Chiêm tinh".
+ *
+ * CÓ THÌ DÙNG, KHÔNG THÌ LẤY CỘT GỐC. Quên điền cột mở rộng thì bên này hiện
+ * bản sạch, nhạt đi một chút; làm ngược lại thì iOS hiện nội dung tâm linh,
+ * điều 2.5.19, khoá tài khoản nhà phát triển. Hỏng về phía nhạt sửa lúc nào
+ * cũng được, hỏng về phía kia thì không.
+ *
+ * Chuỗi rỗng cũng coi như chưa điền — `||` chứ không phải `??` — vì ô trống
+ * trong bảng quản trị lưu xuống thành '' chứ không phải null.
+ */
 export function useChuyenGia() {
   const { dong, loi, dangTai } = useBang<DongChuyenGia>('chuyen_gia');
   const ds = dong
-    ? [...dong].filter((t) => t.dang_nhan).sort((a, b) => a.thu_tu - b.thu_tu)
+    ? [...dong]
+        .filter((t) => t.dang_nhan)
+        .sort((a, b) => a.thu_tu - b.thu_tu)
+        .map((t) => ({
+          ...t,
+          ten: t.ten_mo_rong || t.ten,
+          chuyen_sau: t.chuyen_sau_mo_rong || t.chuyen_sau,
+          gioi_thieu: t.gioi_thieu_mo_rong || t.gioi_thieu,
+        }))
     : null;
   return { dong: ds, loi, dangTai };
 }

@@ -8,18 +8,25 @@ import { CAO_THANH_TAB, CHU, MAU } from '@/constants/giao-dien';
  * Năm thẻ tab. Thứ tự ở đây chính là thứ tự khách — và người duyệt app của
  * Apple — nhìn thấy, nên nó không phải chuyện bày biện.
  *
- * Trước đây mở app ra là "Lá bài hôm nay". Apple từ chối theo điều 4.3(b): app
- * chủ yếu là tarot và chiêm tinh, một danh mục họ coi là đã bão hoà. Giờ thẻ đầu
- * là DANH SÁCH CHUYÊN GIA, và việc đặt lịch tư vấn với người thật mới là chức
- * năng chính. Tarot với tử vi lùi hết vào thẻ Khám phá.
+ * ĐÂY LÀ NHÁNH ANDROID VÀ WEB, không phải iOS. Hai cây mã tách hẳn nhau và
+ * phải giữ như vậy: nhánh iOS `phase-thuc-hanh` KHÔNG có một tệp tarot nào.
+ * Đem tarot về bên đó là điều 2.5.19 — tính năng ẩn — và mức phạt của nó là
+ * khoá tài khoản nhà phát triển. Sửa phần thực hành thì chép TỪ bên này SANG,
+ * không bao giờ trộn nhánh.
  *
- * Gian hàng nằm ở thẻ thứ ba chứ không phải thẻ đầu, và đó là chuyện cố ý: thứ
- * Apple cần thấy trước nhất vẫn là người thật và việc đặt lịch. Gian hàng là
- * phần thêm vào, không phải phần thay thế.
+ * Bên này giữ đủ cả hai: Khám phá (tarot, cung hoàng đạo, thần số) và Thực
+ * hành (thở, ngồi yên, viết, vẽ). Thẻ đầu vẫn là CHUYÊN GIA vì bản này không
+ * chịu sức ép 4.3(b) như bản iOS.
  *
- * `index` là danh sách chuyên gia chứ không phải một màn riêng tên /chuyen-gia:
- * nhờ vậy đường dẫn gốc "/" mở ra đúng thứ muốn khoe, và mấy chỗ đang gọi
- * router.replace('/') sau khi đăng nhập hay nhập hồ sơ xong vẫn chạy nguyên.
+ * `index` là danh sách chuyên gia chứ không phải một màn riêng tên
+ * /chuyen-gia: nhờ vậy "/" mở ra đúng thứ muốn khoe, và mấy chỗ gọi
+ * router.replace("/") sau khi đăng nhập vẫn chạy nguyên.
+ *
+ * `lich-cua-toi` KHÔNG còn trên thanh tab — nó nằm trong mục Cá nhân. Nhưng
+ * TUYẾN thì giữ nguyên tên, vì cột `thong_bao.duong_dan` dưới máy chủ đang
+ * chứa sẵn "/lich-cua-toi?don=<uuid>" ở những dòng đã sinh từ trước, và mấy
+ * dòng đó đóng băng — bản cập nhật không sửa được. Đổi tên tuyến là mọi thông
+ * báo cũ rơi vào "Unmatched Route".
  */
 export default function TabsLayout() {
   // Android vẽ tràn xuống dưới thanh điều hướng của máy. Đặt height cố định là
@@ -54,12 +61,10 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="lich-cua-toi"
+        name="thuc-hanh"
         options={{
-          title: 'Lịch của tôi',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="calendar-outline" color={color} size={size} />
-          ),
+          title: 'Thực hành',
+          tabBarIcon: ({ color, size }) => <Ionicons name="leaf-outline" color={color} size={size} />,
         }}
       />
       <Tabs.Screen
@@ -85,6 +90,10 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" color={color} size={size} />,
         }}
       />
+      {/* Không hiện trên thanh tab, nhưng tuyến vẫn sống: thông báo đã sinh từ
+          trước trỏ thẳng vào "/lich-cua-toi?don=<uuid>". Lối vào cho người dùng
+          nằm trong mục Cá nhân. */}
+      <Tabs.Screen name="lich-cua-toi" options={{ href: null }} />
     </Tabs>
   );
 }

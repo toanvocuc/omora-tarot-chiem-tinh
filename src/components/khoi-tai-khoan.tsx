@@ -11,8 +11,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Alert, Platform, Pressable, Text, View } from 'react-native';
+import { Platform, Pressable, Text, View } from 'react-native';
 
+import { hoi } from '@/lib/hoi-lai';
 import { NutDangNhap } from '@/components/nut-dang-nhap';
 import { CHU, MAU } from '@/constants/giao-dien';
 import {
@@ -107,19 +108,19 @@ export function KhoiTaiKhoan({ xongThi }: { xongThi: () => void }) {
    */
   function hoiChonHoSo(hang: 'google' | 'apple') {
     const ten = TEN_NHA[hang] ?? hang;
-    Alert.alert(
+    hoi(
       'Tài khoản này đã có hồ sơ riêng',
       `Bạn từng đăng nhập Omora bằng tài khoản ${ten} này nên nó đã có một hồ sơ ` +
         'riêng. Chuyển qua hồ sơ đó thì hồ sơ ẩn danh đang mở trên máy này sẽ bị xoá đi.',
       [
         {
-          text: `Chuyển qua tài khoản ${ten}`,
-          style: 'destructive',
+          nhan: `Chuyển qua tài khoản ${ten}`,
+          kieu: 'manh',
           onPress: () => {
             void chuyenSangHoSoCu();
           },
         },
-        { text: 'Để sau', style: 'cancel' },
+        { nhan: 'Để sau', kieu: 'bo' },
       ]
     );
   }
@@ -145,15 +146,15 @@ export function KhoiTaiKhoan({ xongThi }: { xongThi: () => void }) {
   }
 
   function hoiRoiThoat() {
-    Alert.alert(
+    hoi(
       'Đăng xuất?',
       'Hồ sơ và lịch sử rút bài của bạn vẫn nằm nguyên trên máy chủ. ' +
         'Đăng nhập lại bằng tài khoản này là thấy lại đầy đủ.',
       [
-        { text: 'Ở lại', style: 'cancel' },
+        { nhan: 'Ở lại', kieu: 'bo' },
         {
-          text: 'Đăng xuất',
-          style: 'destructive',
+          nhan: 'Đăng xuất',
+          kieu: 'manh',
           onPress: () =>
             dangXuat().catch((e) => setLoi(loiDeHieu(e))),
         },

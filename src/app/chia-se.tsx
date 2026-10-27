@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Platform, Text, View } from 'react-native';
+import { Platform, Text, View } from 'react-native';
 
+import { hoi } from '@/lib/hoi-lai';
 import { DangTai, ManHinh, Nut, Trong } from '@/components/nen';
 import { CAO_ANH, RONG_ANH, TY_LE_XEM, TheChiaSe } from '@/components/the-chia-se';
 import { CHU } from '@/constants/giao-dien';
@@ -50,14 +51,14 @@ export default function ChiaSe() {
       // lưu vào thư viện còn chẳng cần quyền nào, lời gọi này trả về luôn.
       const quyen = await MediaLibrary.requestPermissionsAsync(true);
       if (!quyen.granted) {
-        Alert.alert('Chưa có quyền', 'Cho phép app lưu ảnh trong phần cài đặt của máy.');
+        hoi('Chưa có quyền', 'Cho phép app lưu ảnh trong phần cài đặt của máy.');
         return;
       }
       const duong = await chupAnh();
       await MediaLibrary.saveToLibraryAsync(duong);
-      Alert.alert('Đã lưu', 'Ảnh nằm trong thư viện ảnh của máy.');
+      hoi('Đã lưu', 'Ảnh nằm trong thư viện ảnh của máy.');
     } catch (e) {
-      Alert.alert('Chưa lưu được', e instanceof Error ? e.message : 'Thử lại giúp tôi.');
+      hoi('Chưa lưu được', e instanceof Error ? e.message : 'Thử lại giúp tôi.');
     } finally {
       setDangLam(null);
     }
@@ -68,7 +69,7 @@ export default function ChiaSe() {
     try {
       const Sharing = await import('expo-sharing');
       if (!(await Sharing.isAvailableAsync())) {
-        Alert.alert('Máy không chia sẻ được', 'Dùng nút lưu vào máy rồi đăng thủ công.');
+        hoi('Máy không chia sẻ được', 'Dùng nút lưu vào máy rồi đăng thủ công.');
         return;
       }
       const duong = await chupAnh();
@@ -77,7 +78,7 @@ export default function ChiaSe() {
         dialogTitle: 'Chia sẻ lá bài',
       });
     } catch (e) {
-      Alert.alert('Chưa chia sẻ được', e instanceof Error ? e.message : 'Thử lại giúp tôi.');
+      hoi('Chưa chia sẻ được', e instanceof Error ? e.message : 'Thử lại giúp tôi.');
     } finally {
       setDangLam(null);
     }

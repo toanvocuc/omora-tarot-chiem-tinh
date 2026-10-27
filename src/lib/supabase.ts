@@ -14,7 +14,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 import 'react-native-url-polyfill/auto';
 
-import { danhDauDaVao } from '@/lib/ho-so-xem-thu';
 import { XEM_THU } from '@/lib/xem-thu';
 
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
@@ -99,12 +98,7 @@ async function daTungCoTaiKhoanThat(): Promise<boolean> {
  * máy từng đăng nhập thật — thà hỏng rõ còn hơn mất dữ liệu lặng lẽ.
  */
 export async function dangNhapAnDanh(coY = false) {
-  // Xem thử không có máy chủ nào để gọi. Chỉ đánh dấu là đã vào, để màn gốc
-  // thôi đẩy người xem về màn đăng nhập ở những lần mở sau.
-  if (XEM_THU) {
-    await danhDauDaVao();
-    return null;
-  }
+  if (XEM_THU) return null;
   const { data } = await supabase.auth.getSession();
   if (data.session) return data.session.user;
 

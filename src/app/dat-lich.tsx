@@ -12,8 +12,9 @@
 
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, AppState, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { AppState, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
+import { hoi } from '@/lib/hoi-lai';
 import { BanhXeGioHen } from '@/components/banh-xe';
 import { ChuThan, Khoi, ManHinh, Nhan, Nut, Trong, VanNgan } from '@/components/nen';
 import { CHU, MAU } from '@/constants/giao-dien';
@@ -199,21 +200,21 @@ export default function DatLich() {
       void guiThat();
       return;
     }
-    Alert.alert(
+    hoi(
       'Hồ sơ của bạn còn thiếu',
       `Bạn chưa có ${cauThieu(con)}.\n\nVẫn gửi đơn được, nhưng chuyên gia có thể phải huỷ vì không đủ thông tin để xem cho bạn.`,
       [
         {
-          text: 'Để tôi điền thêm',
-          style: 'cancel',
+          nhan: 'Để tôi điền thêm',
+          kieu: 'bo',
           onPress: () =>
-            Alert.alert(
+            hoi(
               'Điền ở mục Cá nhân',
               'Bạn vào mục Cá nhân để điền thêm thông tin, rồi quay lại đặt lịch.',
-              [{ text: 'OK' }]
+              [{ nhan: 'OK' }]
             ),
         },
-        { text: 'Vẫn gửi đơn', style: 'destructive', onPress: () => void guiThat() },
+        { nhan: 'Vẫn gửi đơn', kieu: 'manh', onPress: () => void guiThat() },
       ]
     );
   }
@@ -247,13 +248,24 @@ export default function DatLich() {
         goi: goi?.ten ?? null,
         giaGoi: goi?.gia ?? null,
       });
-      // Sang thẳng mục Lịch của tôi, KHÔNG tự mở Zalo nữa.
+      // KHÔNG tự mở Zalo. Tự mở là chọn hộ khách một kênh — khách không dùng
+      // Zalo thì bị đẩy sang một ứng dụng họ không có — và nó hất khách ra khỏi
+      // app đúng lúc vừa đặt xong.
       //
-      // Tự mở là chọn hộ khách một kênh — khách không dùng Zalo thì bị đẩy sang
-      // một ứng dụng họ không có — và nó hất khách ra khỏi app đúng lúc vừa đặt
-      // xong, chưa kịp nhìn thấy đơn của mình nằm đâu. Bên Lịch của tôi có đủ
-      // mấy nơi liên hệ của thầy để khách tự chọn.
-      router.replace('/lich-cua-toi');
+      // Cũng không nhảy thẳng sang Lịch của tôi nữa: thẻ đó đã rời thanh tab,
+      // vào nằm trong mục Cá nhân, nên đẩy khách tới đó mà không nói gì thì họ
+      // không biết lần sau tìm lại ở đâu. Hỏi một câu vừa cho họ xem ngay được,
+      // vừa dạy luôn chỗ cất đơn.
+      //
+      // Lui về màn chuyên gia TRƯỚC rồi mới hỏi: để nguyên màn đặt lịch đã gửi
+      // xong phía sau hộp thoại thì khách bấm Đóng là nhìn lại cái biểu mẫu vừa
+      // điền, tưởng chưa gửi được.
+      if (router.canGoBack()) router.back();
+      else router.replace('/');
+      hoi('Đã gửi đơn', 'Đơn của bạn nằm trong mục Cá nhân. Xem ngay không?', [
+        { nhan: 'Để sau', kieu: 'bo' },
+        { nhan: 'Xem đơn', onPress: () => router.push('/lich-cua-toi') },
+      ]);
     } catch (e) {
       datLoi(e instanceof Error ? e.message : 'Chưa gửi được, thử lại giúp tôi.');
       datDangGui(false);

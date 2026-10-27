@@ -4,7 +4,7 @@
  */
 import { khiDoiTaiKhoan } from '@/lib/doi-tai-khoan';
 import type { GioiTinh, HoSo } from '@/lib/ho-so';
-
+import { HO_SO_MAU, XEM_THU } from '@/lib/xem-thu';
 
 export type BanNhap = {
   hoTen: string;
@@ -26,13 +26,19 @@ const TRONG: BanNhap = {
  * Bản chạy thật luôn bắt đầu từ bản nhập trống.
  */
 function banDau(): BanNhap {
-  // LUÔN bắt đầu từ bản trống, kể cả khi xem thử.
-  //
-  // Trước đây bản xem thử điền sẵn dữ liệu của hồ sơ mẫu, nên người mở trang
-  // web vào luồng khai là thấy tên và ngày sinh của một người lạ nằm sẵn trong
-  // ô. Giờ bản xem thử để họ tự khai hồ sơ của chính mình, nên điền sẵn là
-  // phá đúng thứ vừa sửa.
-  return { ...TRONG };
+  if (!XEM_THU) return { ...TRONG };
+  const [nam, thang, ngay] = (HO_SO_MAU.ngay_sinh ?? '1995-09-16').split('-');
+  const [gio, phut] = (HO_SO_MAU.gio_sinh ?? '07:30').split(':');
+  return {
+    hoTen: HO_SO_MAU.ho_ten ?? '',
+    ngay: String(Number(ngay)),
+    thang: String(Number(thang)),
+    nam,
+    gio: String(Number(gio)),
+    phut,
+    noiSinh: HO_SO_MAU.noi_sinh,
+    gioiTinh: HO_SO_MAU.gioi_tinh,
+  };
 }
 
 let ban: BanNhap = banDau();

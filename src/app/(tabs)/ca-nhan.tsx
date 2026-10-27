@@ -8,7 +8,6 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BieuTuongCung } from '@/components/bieu-tuong-cung';
 import { DongPhienBan } from '@/components/dong-phien-ban';
 import { KhoiTaiKhoan } from '@/components/khoi-tai-khoan';
-import { XEM_THU } from '@/lib/xem-thu';
 import { DangTai } from '@/components/nen';
 import { dangHenLaBai } from '@/lib/thong-bao';
 import { NenTroiSao } from '@/components/nen-anh';
@@ -16,6 +15,7 @@ import { ThanhTieuDe } from '@/components/thanh-tieu-de';
 import { CAO_THANH_TAB, CHU, MAU, NEN_CHUYEN } from '@/constants/giao-dien';
 import { napTuHoSo } from '@/lib/ban-nhap';
 import { tachNgay, useHoSo } from '@/lib/ho-so';
+import { useYeuCauCuaToi } from '@/lib/yeu-cau';
 import { cungTheoNgay, timCung } from '@/lib/zodiac';
 
 export default function CaNhan() {
@@ -39,6 +39,18 @@ export default function CaNhan() {
         .catch(() => datDangHen(false));
     }, [])
   );
+  /**
+   * Đếm đơn chưa xong, để dòng "Đơn của tôi" nói được tình hình ngay ở đây.
+   *
+   * Thẻ `Lịch của tôi` đã rời khỏi thanh tab, nên khách không còn liếc một cái
+   * là thấy đơn có động tĩnh. Con số này bù lại chỗ đó. Thiếu nó thì ai tắt
+   * thông báo sẽ không bao giờ biết chuyên gia đã nhận đơn.
+   */
+  const { dong: cacDon } = useYeuCauCuaToi();
+  const donChuaXong = (cacDon ?? []).filter(
+    (d) => d.trang_thai === 'cho_nhan' || d.trang_thai === 'da_nhan'
+  ).length;
+
   const ns = tachNgay(hoSo?.ngay_sinh ?? null);
   const ma = ns ? cungTheoNgay(ns.ngay, ns.thang) : null;
   const le = useSafeAreaInsets();
@@ -96,13 +108,26 @@ export default function CaNhan() {
             </View>
 
             {/* Hai bộ mặt: đang ẩn danh thì mời gắn tài khoản, đã đăng nhập
-                thì hiện đang dùng tài khoản nào kèm nút đăng xuất.
+                thì hiện đang dùng tài khoản nào kèm nút đăng xuất. */}
+            <KhoiTaiKhoan xongThi={taiLai} />
 
-                Bản xem thử giấu hẳn khối này. Đăng nhập Google cần khoá máy
-                chủ thật, mà bản xem thử cố ý không mang khoá nào — bấm vào
-                chỉ nhận 401 rồi hiện lỗi, trông như app hỏng. Thà không có
-                nút còn hơn có một nút chắc chắn hỏng. */}
-            {XEM_THU ? null : <KhoiTaiKhoan xongThi={taiLai} />}
+            <Muc nhan="Đặt lịch" />
+            <Nhom>
+              <DongDan
+                bieu="calendar-outline"
+                ten="Đơn của tôi"
+                gia={
+                  cacDon === null
+                    ? undefined
+                    : cacDon.length === 0
+                      ? 'Chưa có đơn nào'
+                      : donChuaXong > 0
+                        ? `${donChuaXong} đơn chưa xong`
+                        : 'Đã xong hết'
+                }
+                onPress={() => router.push('/lich-cua-toi')}
+              />
+            </Nhom>
 
             <Muc nhan="Cá nhân hoá" />
             <Nhom>

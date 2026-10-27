@@ -13,8 +13,9 @@
  */
 
 import * as Clipboard from 'expo-clipboard';
-import { Alert, Linking } from 'react-native';
+import { Linking } from 'react-native';
 
+import { hoi } from '@/lib/hoi-lai';
 import { ghiLuotBamZalo } from '@/lib/su-kien';
 
 /** Số dùng khi thầy chưa khai số riêng. */
@@ -29,12 +30,12 @@ export async function moZalo(soZalo: string | null | undefined, manHinh: string)
   await Clipboard.setStringAsync(ma ? `Mình đến từ app, mã ${ma}` : 'Mình đến từ app');
 
   if (!so) {
-    Alert.alert('Chưa có số Zalo', 'Chưa khai số Zalo cho thầy này.');
+    hoi('Chưa có số Zalo', 'Chưa khai số Zalo cho thầy này.');
     return;
   }
   const duong = `https://zalo.me/${so}`;
   if (!(await Linking.canOpenURL(duong))) {
-    Alert.alert('Không mở được Zalo', 'Máy chưa cài Zalo hoặc bị chặn.');
+    hoi('Không mở được Zalo', 'Máy chưa cài Zalo hoặc bị chặn.');
     return;
   }
   await Linking.openURL(duong);
