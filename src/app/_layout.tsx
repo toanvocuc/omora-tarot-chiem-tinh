@@ -12,6 +12,7 @@ import {
 import { useFonts } from 'expo-font';
 import { Stack, router, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import * as WebBrowser from 'expo-web-browser';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
@@ -29,6 +30,31 @@ import { batHienKhiDangMo, doiLoiNhac, dongBoNhacLaBai } from '@/lib/thong-bao';
 import { useTraLoiThongBao, xoaTraLoiThongBao } from '@/lib/tra-loi-thong-bao';
 import { supabase } from '@/lib/supabase';
 import { XEM_THU } from '@/lib/xem-thu';
+
+
+/**
+ * BẮT BUỘC cho bản web. Trên máy thật thì đây là lệnh rỗng.
+ *
+ * Đăng nhập Google trên web chạy bằng CỬA SỔ BẬT LÊN:
+ *
+ *   1. `openAuthSessionAsync` cất một mã phiên vào localStorage, mở cửa sổ con
+ *      sang Google, rồi ngồi nghe `postMessage`.
+ *   2. Google trả về `https://<tên miền>/dang-nhap-xong?code=…`, cửa sổ con nạp
+ *      lại TOÀN BỘ app.
+ *   3. Cửa sổ con phải gọi `maybeCompleteAuthSession()` — chính hàm này — thì
+ *      nó mới `parent.postMessage(...)` gửi địa chỉ về cho cửa sổ cha rồi đóng.
+ *
+ * Thiếu bước 3 thì cha chờ vô tận, còn con thì vì chưa có phiên nên bộ định
+ * tuyến đá về `/dang-nhap`. Người dùng thấy đúng một cảnh: bấm đăng nhập, hiện
+ * ra cửa sổ mới mang chính màn đăng nhập cũ, lặp mãi không vào được.
+ *
+ * Trên máy thật không cần vì hệ điều hành tự đẩy `omora://…` ngược vào app, nên
+ * lỗi này CHỈ lộ ở bản web — và nó im lặng, không ném lỗi nào ra bảng điều khiển.
+ *
+ * Phải gọi ở CẤP MODULE chứ không trong thân thành phần: càng sớm càng tốt, để
+ * cửa sổ con đóng ngay thay vì kịp vẽ ra màn đăng nhập rồi mới đóng.
+ */
+WebBrowser.maybeCompleteAuthSession();
 
 SplashScreen.preventAutoHideAsync();
 
