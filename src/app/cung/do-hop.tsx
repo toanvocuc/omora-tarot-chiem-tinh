@@ -43,7 +43,7 @@ export default function DoHop() {
         {dangTai ? (
           <DangTai />
         ) : loi ? (
-          <Trong loi={`Chưa tải được nội dung. ${loi}`} />
+          <Trong loi="Chưa tải được nội dung. Bạn thử lại nhé." />
         ) : (
           <View className="gap-4">
             <Khoi vien>

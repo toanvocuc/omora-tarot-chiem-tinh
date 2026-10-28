@@ -45,7 +45,7 @@ export default function LuoiCung() {
 
           {loi ? (
             <View className="mt-6">
-              <Trong loi={`Chưa tải được nội dung. ${loi}`} />
+              <Trong loi="Chưa tải được nội dung. Bạn thử lại nhé." />
             </View>
           ) : null}
 

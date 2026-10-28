@@ -156,7 +156,30 @@ export function useGoiTuVan(maThay: string | null | undefined) {
         // Xét `error` trước: postgrest không ném, nó trả { data: null, error }.
         // Không xét thì mạng chập thành "thầy này không có gói nào".
         if (huy || error) return;
-        datDong((data as Goi[]) ?? []);
+        const goi = (data as Goi[]) ?? [];
+
+        /**
+         * Đè bản tâm linh lên mô tả gói — CHỈ nhánh Android/web này làm.
+         *
+         * `goi_tu_van.mo_ta` là cột bản iOS đọc, và cả 7 gói đều `cho_ios`
+         * bật, nên chữ tarot không được phép nằm ở đó. Bản tâm linh cất riêng
+         * ở `goi_tu_van_mo_rong`, bảng mà bên iOS không bao giờ hỏi tới.
+         *
+         * Bảng chưa dựng — migration 0034 chưa chạy — thì coi như không có và
+         * dùng mô tả gốc. Nhờ vậy dựng lại web trước hay chạy lệnh trước đều
+         * không gãy, khỏi phải nhớ thứ tự.
+         */
+        const { data: moRong } = await supabase
+          .from('goi_tu_van_mo_rong')
+          .select('ma, mo_ta')
+          .in('ma', goi.map((g) => g.ma));
+        if (huy) return;
+
+        const theoMa = new Map(
+          ((moRong as { ma: string; mo_ta: string | null }[]) ?? []).map((m) => [m.ma, m.mo_ta])
+        );
+        // `||` chứ không `??`: ô trống trong bảng quản trị lưu xuống thành ''.
+        datDong(goi.map((g) => ({ ...g, mo_ta: theoMa.get(g.ma) || g.mo_ta })));
       } catch {
         // Giữ nguyên danh sách cũ.
       }

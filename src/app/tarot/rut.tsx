@@ -83,7 +83,7 @@ export default function RutBai() {
         <Trong
           loi={
             loi
-              ? `Chưa tải được nội dung. ${loi}`
+              ? 'Chưa tải được nội dung. Bạn thử lại nhé.'
               : boBai?.length
                 ? `Kho lá bài chỉ còn ${boBai.length} lá, không đủ cho kiểu trải này.`
                 : 'Kho lá bài đang trống, chưa rút được.'

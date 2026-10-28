@@ -63,6 +63,7 @@ export function useBoBai() {
       .then(({ data, error }) => {
         if (huy) return;
         if (error) {
+          console.warn('[kho-noi-dung] la_bai:', error.message);
           setLoi(error.message);
           return;
         }
@@ -228,7 +229,14 @@ function useBang<T>(bang: string) {
       try {
         const { data, error } = await supabase.from(bang).select('*');
         if (huy) return;
-        if (error) setLoi(error.message);
+        if (error) {
+          // Chi tiết lỗi ở LẠI ĐÂY chứ không đi ra màn hình. Chuỗi PostgREST
+          // trả về là tiếng Anh, kiểu "JSON object requested, multiple rows
+          // returned" — dán vào mặt khách thì vô nghĩa, mà bỏ hẳn thì hết
+          // đường dò. Một chỗ ghi, sáu màn hiện câu tử tế.
+          console.warn(`[kho-noi-dung] ${bang}:`, error.message);
+          setLoi(error.message);
+        }
         else setDong(data as T[]);
       } catch (e) {
         if (huy) return;

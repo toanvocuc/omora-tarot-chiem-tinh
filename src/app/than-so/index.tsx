@@ -156,7 +156,7 @@ export default function ThanSo() {
 
         {/* Bảng chữ nghĩa nằm trên máy chủ. Mất mạng hoặc chưa nạp bảng thì phải nói ra,
             không thì màn hình trống trơn mà khách không hiểu vì sao. */}
-        {loiNoiDung ? <Trong loi={`Chưa tải được nội dung. ${loiNoiDung}`} /> : null}
+        {loiNoiDung ? <Trong loi="Chưa tải được nội dung. Bạn thử lại nhé." /> : null}
 
         {laChuDao && noiDungCD ? (
           <>

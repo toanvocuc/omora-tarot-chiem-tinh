@@ -175,7 +175,7 @@ export default function ChiTietCung() {
 
           {loi ? (
             <View className="mt-7">
-              <Trong loi={`Chưa tải được nội dung. ${loi}`} />
+              <Trong loi="Chưa tải được nội dung. Bạn thử lại nhé." />
             </View>
           ) : null}
 

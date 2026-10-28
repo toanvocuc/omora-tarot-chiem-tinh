@@ -22,29 +22,34 @@ import type { KieuTrai } from '@/lib/tarot';
  * — đúng việc nhưng cộc lốc, và đọc tới lần thứ ba thì thành một cái nhãn.
  *
  * Mấy câu này dùng phông CÓ CHÂN chứ không dùng phông thân như chữ khác trong
- * app. Đây là chỗ duy nhất trên màn mang giọng nghi lễ, nên để nó khác hẳn.
+ * app, để nó tách hẳn khỏi phần còn lại của màn.
+ *
+ * Viết lại ngày 2026-10-28. Bản cũ nói giọng vũ trụ — "Vũ trụ đang lắng nghe",
+ * "định mệnh bắt đầu bằng một câu hỏi" — nghe như lời phán. Bản này hỏi khách
+ * một câu và trả quyền quyết định lại cho họ: "Tấm bài không quyết định thay
+ * bạn". Đổi giọng, không đổi việc.
  */
 const CAU_MO = [
-  'Vũ trụ đang lắng nghe.',
-  'Những lá bài đang chờ được lật mở.',
-  'Có những lời hồi đáp đến từ sự tĩnh lặng.',
-  'Đêm nay, những vì sao muốn kể bạn nghe một điều.',
-  'Đôi khi, định mệnh bắt đầu bằng một câu hỏi.',
-  'Hãy để trực giác dẫn lối.',
-  'Mỗi lá bài là một cánh cửa chưa mở.',
-  'Có những điều chỉ trái tim mới thấu hiểu.',
-  'Những bí mật đang chờ được hé lộ.',
-  'Có lẽ, đây là lúc bạn cần một lời hồi đáp.',
-  'Vũ trụ luôn có cách riêng để thì thầm.',
-  'Điều bạn tìm kiếm có thể gần hơn bạn nghĩ.',
-  'Hãy để những vì sao soi sáng con đường phía trước.',
-  'Một thông điệp đang chờ bạn khám phá.',
-  'Đôi khi, điều chưa biết lại chứa đựng câu trả lời.',
-  'Hãy lắng nghe điều mà tâm trí thường bỏ qua.',
-  'Mọi hành trình khám phá đều bắt đầu từ bên trong.',
-  'Có những câu trả lời chỉ xuất hiện khi ta sẵn sàng.',
-  'Hãy để màn đêm kể câu chuyện của riêng bạn.',
-  'Một khoảnh khắc tĩnh lặng, một cánh cửa mới.',
+  'Có chuyện gì đang khiến bạn nghĩ mãi?',
+  'Hít một hơi sâu rồi chọn lá bài khiến bạn chú ý.',
+  'Đôi khi, yên một chút là đủ để nghe lòng mình.',
+  'Trước khi rút bài, thử gọi tên điều bạn thật sự muốn hỏi.',
+  'Một câu hỏi thật lòng có thể mở ra góc nhìn mới.',
+  'Bạn bị thu hút bởi lá nào đầu tiên?',
+  'Mỗi lá bài là một cách nhìn khác về câu chuyện của bạn.',
+  'Có những điều phải ngồi lại với lòng mình mới rõ.',
+  'Bạn không cần vội tìm đáp án cho mọi chuyện.',
+  'Có lẽ điều bạn cần là một góc nhìn dịu dàng hơn.',
+  'Thử lắng nghe điều mình vẫn gạt đi mỗi ngày.',
+  'Câu trả lời đôi khi bắt đầu từ điều rất gần.',
+  'Tấm bài không quyết định thay bạn; nó giúp bạn nhìn rõ hơn.',
+  'Chọn một lá, rồi xem điều gì chạm đến bạn.',
+  'Không phải điều gì chưa rõ cũng đáng sợ.',
+  'Có điều gì bạn biết trong lòng nhưng chưa dám gọi tên?',
+  'Chuyện này có ý nghĩa gì với riêng bạn?',
+  'Không cần hiểu hết ngay trong lần rút đầu tiên.',
+  'Cho mình một khoảng lặng trước khi chọn.',
+  'Một lá bài nhỏ, một điều để suy ngẫm.',
 ];
 
 const KIEU: { ma: KieuTrai; ten: string; mo: string; so: number }[] = [
@@ -110,7 +115,7 @@ export default function ChonKieuTrai() {
           {dangTai ? <DangTai /> : null}
           {loi ? (
             <View className="mt-6">
-              <Trong loi={`Chưa tải được nội dung. ${loi}`} />
+              <Trong loi="Chưa tải được nội dung. Bạn thử lại nhé." />
             </View>
           ) : null}
           {boBai?.length === 0 ? (

@@ -123,7 +123,7 @@ export default function KetQua() {
 
       <HoiChuyenGia
         manHinh="tarot"
-        loiMoi={`Muốn hiểu sâu hơn về ${dang.la.tenEn}? Nhắn cho chuyên gia để hỏi theo đúng chuyện của bạn.`}
+        loiMoi={`Muốn hiểu sâu hơn về ${dang.la.tenEn}? Bạn có thể nhắn chuyên gia để cùng nhìn sâu hơn vào câu chuyện riêng.`}
       />
       <LuuYThamKhao />
     </ManHinh>
