@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import Animated, {
   interpolateColor,
+  runOnJS,
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
@@ -80,8 +81,49 @@ function BanhXe({ gia, dat, muc }: { gia: number; dat: (v: number) => void; muc:
   const [dauTien] = useState(viTri);
   const y = useSharedValue(dauTien * CAO_DONG);
 
+  /**
+   * Chốt giá trị khi CUỘN ĐÃ DỪNG, không chờ sự kiện của hệ điều hành.
+   *
+   * Hai chỗ chốt cũ đều hỏng trên web:
+   *
+   *   `onMomentumScrollEnd` — react-native-web KHÔNG phát sự kiện này. Đây là
+   *   chỗ chốt chính xác nhất trên máy thật, và trên web nó không bao giờ nổ.
+   *
+   *   `onScrollEndDrag` — lấy vị trí ĐÚNG LÚC NHẤC TAY, rồi 350ms sau mới chốt.
+   *   Nhưng sau khi nhấc tay danh sách còn trôi theo đà và dính mốc ở chỗ khác,
+   *   nên con số chốt được là chỗ ngón tay rời đi chứ không phải chỗ bánh xe
+   *   dừng lại.
+   *
+   * Hậu quả đo được: bánh xe hiện 21:03 mà đơn vẫn mang 19:00, và nhãn nút phía
+   * trên vẫn ghi giờ cũ. Khách tưởng app không nhận.
+   *
+   * `onScroll` thì CHẮC CHẮN chạy trên cả ba nền. Nên chốt theo nó: hễ ngừng
+   * nhận sự kiện cuộn một nhịp là coi như bánh xe đã dừng, đọc vị trí lúc đó.
+   * Dùng ô hẹn RIÊNG `henCuon`, không dùng chung `hen` của hai chỗ cũ, để trên
+   * máy thật ba đường không giẫm chân nhau.
+   */
+  const henCuon = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chotRef = useRef<(v: number) => void>(() => {});
+
+  const khiCuon = useCallback((viTriCuon: number) => {
+    if (henCuon.current) clearTimeout(henCuon.current);
+    henCuon.current = setTimeout(() => {
+      henCuon.current = null;
+      dangKeo.current = false;
+      chotRef.current(viTriCuon);
+    }, 180);
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (henCuon.current) clearTimeout(henCuon.current);
+    },
+    []
+  );
+
   const batCuon = useAnimatedScrollHandler((e) => {
     y.value = e.contentOffset.y;
+    runOnJS(khiCuon)(e.contentOffset.y);
   });
 
   const huyHen = useCallback(() => {
@@ -110,6 +152,15 @@ function BanhXe({ gia, dat, muc }: { gia: number; dat: (v: number) => void; muc:
     const m = muc[Math.min(Math.max(i, 0), muc.length - 1)];
     if (m && m.gia !== gia) dat(m.gia);
   };
+  // Bộ đệm cuộn-đã-dừng giữ một ô nhớ ổn định, nên phải cho nó bản `chot` mới
+  // nhất sau mỗi lần vẽ lại — không thì nó đóng băng `gia` và `muc` của lần
+  // đầu, và chốt ra số sai ngay khi khách đổi ngày.
+  //
+  // Gán trong hiệu ứng chứ không gán thẳng giữa thân hàm: đụng vào ô nhớ trong
+  // lúc React đang vẽ là phá quy tắc, và ESLint chặn đúng chỗ này.
+  useEffect(() => {
+    chotRef.current = chot;
+  });
 
   const ve = useCallback(
     ({ item, index }: { item: MucChon; index: number }) => (

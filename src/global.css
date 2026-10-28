@@ -10,3 +10,27 @@
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
   --font-serif: Georgia, 'Times New Roman', serif;
 }
+
+/* ───────────────────────────────────────────── NỀN CHO BẢN WEB
+ *
+ * Chỉ bản web cần khối này. Trên máy thật, nền do `ManHinh` vẽ và không có
+ * trang nào nằm sau nó để mà lòi ra.
+ *
+ * Trên trình duyệt thì khác: gốc trang cao đúng một màn hình, nội dung dài hơn
+ * thì phần dư tràn ra ngoài và lộ nguyên nền TRẮNG mặc định của `body`. Khách
+ * cuộn xuống dưới là thấy đúng một mảng trắng chói giữa app màu đêm — đã gặp ở
+ * màn Viết và màn Vẽ.
+ *
+ * `overscroll-behavior: none` chặn nốt vệt trắng khi kéo quá đà trên di động.
+ */
+html,
+body,
+#root {
+  background-color: #0b1220;
+}
+
+html,
+body {
+  min-height: 100%;
+  overscroll-behavior: none;
+}

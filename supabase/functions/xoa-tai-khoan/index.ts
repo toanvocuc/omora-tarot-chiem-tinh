@@ -38,10 +38,22 @@ const URL_DU_AN = Deno.env.get('SUPABASE_URL') ?? '';
 const KHOA_QUAN_TRI = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const KHOA_CONG_KHAI = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 
-/** App gọi từ máy khách nên phải trả lời được yêu cầu dò đường của trình duyệt. */
+/**
+ * App gọi từ máy khách nên phải trả lời được yêu cầu dò đường của trình duyệt.
+ *
+ * `x-client-info` và `apikey` LÀ BẮT BUỘC, đừng rút gọn danh sách này.
+ * `supabase-js` tự đính hai tên đó vào mọi lời gọi `functions.invoke()`. Thiếu
+ * chúng trong danh sách cho phép thì trình duyệt chặn ngay từ bước dò đường,
+ * và app chỉ nhận được đúng một câu vô nghĩa: "Failed to send a request to the
+ * Edge Function" — không nói header nào bị thiếu, không có mã lỗi nào.
+ *
+ * Trên máy thật không có CORS nên nút Xoá tài khoản vẫn chạy bình thường; lỗi
+ * CHỈ lộ ở bản web. Đã mất một lúc mới lần ra vì hàm có CORS sẵn, nhìn qua
+ * tưởng đúng rồi.
+ */
 const CORS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, content-type',
+  'Access-Control-Allow-Headers': 'authorization, content-type, x-client-info, apikey',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 

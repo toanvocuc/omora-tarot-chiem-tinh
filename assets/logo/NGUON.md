@@ -2,34 +2,43 @@
 
 | File | Kích thước | Dùng ở đâu |
 |---|---|---|
-| `omora-day-du.png` | 612 × 768 | Màn chào mừng, thẻ chia sẻ |
-| `omora-dau.png` | 600 × 662 | Bản chỉ còn hình, chưa dùng tới |
-| `omora-vuong.png` | 1024 × 1024 | Bản vuông, để dành làm biểu tượng app |
+| `omora-day-du.png` | 600 × 585 | Màn đăng nhập, mở đầu nhập hồ sơ, màn hoàn tất |
+| `omora-dau.png` | 600 × 553 | Bản chỉ còn hình, chưa dùng tới |
+| `omora-vuong.png` | 1024 × 1024 | Bản vuông, chưa dùng tới |
 
-Công ty gửi ngày 2026-10-01, một file PNG 641 × 519.
+Cắt từ `assets/images/logo-goc.png` — chính tệp dùng để dựng biểu tượng app,
+nên logo trong app và biểu tượng ngoài màn hình chắc chắn khớp nhau.
 
-## Ba chỗ phải sửa trước khi dùng được
+## Vì sao phải thay — đọc trước khi đụng vào
 
-Ảnh gốc là nét **nâu trên nền xám có kẻ ô**, và có chữ **SLOGAN HERE** là chữ giữ chỗ
-của mẫu thiết kế. Bản trong app đã xử lý:
+Bản cũ là **bàn tay huyền bí kèm trăng lưỡi liềm và ngôi sao**, đúng loại hình
+khiến app bị Apple từ chối hai lần theo điều 4.3(b).
 
-1. **Tách nét khỏi nền và khỏi lưới kẻ ô.** Nét vẽ ngả nâu còn lưới là xám trung tính,
-   nên lọc theo chênh lệch giữa kênh đỏ và kênh xanh là tách sạch.
-2. **Bỏ chữ SLOGAN HERE.** Gắn nhãn từng mảng nét rời rồi bỏ những mảng nằm ngoài khung
-   bầu dục và ở nửa dưới. Chữ OMORA cũng nằm ngoài khung nhưng ở nửa trên nên giữ lại.
-3. **Đổi nét sang màu vàng `#D4A84B`**, nền để trong suốt.
+Hôm 24/10 đã đổi biểu tượng app sang logo xanh lá, nhưng **chỉ đổi
+`assets/images/`** và bỏ sót thư mục này. Hậu quả: biểu tượng ngoài màn hình là
+logo mới, mà mở app ra thì bàn tay bói toán vẫn còn nguyên ở **ba màn người
+duyệt chắc chắn thấy** — đăng nhập, mở đầu nhập hồ sơ, màn hoàn tất. User phát
+hiện khi chụp màn hình bản TestFlight ngày 27/10.
 
-Script dựng nằm ở `scratchpad/lam_logo.py` của phiên làm việc. Có logo mới thì chạy lại
-script đó, hoặc xin công ty bản vector.
+**Bài học: đổi nhận diện thì phải quét CẢ HAI thư mục** `assets/images/` và
+`assets/logo/`, cộng phần chữ khai trên App Store và ba trang pháp lý.
 
-## Còn thiếu
+## Cách dựng lại
 
-**Xin công ty xác nhận nguồn và giấy phép.** Mẫu có chữ SLOGAN HERE là dấu hiệu của
-ảnh mua từ sàn mẫu thiết kế, loại thường kèm điều kiện sử dụng riêng.
+Cắt hai khung từ `logo-goc.png` (1254 × 1254):
 
-Biểu tượng app đã dựng từ logo này, bằng `python scripts/lam-bieu-tuong.py`. Có logo
-mới thì thay `omora-vuong.png` rồi chạy lại lệnh đó, đừng sửa tay từng file trong
-`assets/images/` vì sáu file đó phải khớp nhau.
+| | Khung | Ra |
+|---|---|---|
+| đủ chữ OMORA | `(57, 44, 1210, 1169)` | `omora-day-du.png` |
+| chỉ hình tròn | `(180, 44, 1108, 900)` | `omora-dau.png` |
 
-Thư mục `assets/expo.icon` không còn được dùng tới — đó là biểu tượng xanh mặc định của
-Expo, đã gỡ khỏi `app.json`. Xoá đi được.
+Ba bước xử lý:
+
+1. **Nắn nền về trắng tuyệt đối.** Ảnh gốc nền 253 chứ không phải 255, để
+   nguyên thì mép ảnh lệch tông so với nền thẻ.
+2. **Tách nền bằng cách loang từ mép ngoài vào**, KHÔNG lọc theo màu. Gương mặt
+   trong vòng tròn cũng màu trắng — lọc theo màu là thủng mất mặt.
+3. **Thu nhỏ về rộng 600**, không bao giờ phóng lên.
+
+Sửa kích thước thì **phải sửa luôn `TY_LE_DAY_DU` và `TY_LE_DAU`** trong
+`src/components/logo.tsx`, không thì logo bị kéo dẹt.

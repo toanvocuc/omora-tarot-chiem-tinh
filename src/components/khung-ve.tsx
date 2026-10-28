@@ -30,6 +30,18 @@ export type Net = { d: string; day: number };
 /** Ba cỡ nét. Đủ để vẽ đậm nhạt mà không phải bày ra một bảng chọn. */
 const CO_NET = [2, 5, 10];
 
+/**
+ * Màu mực trên giấy.
+ *
+ * Khung vẽ có nền TRẮNG (`backgroundColor: '#FFFFFF'` bên dưới), nên không được
+ * lấy `MAU.chuChinh` — màu đó là `#EDF1F8`, gần trắng, chọn cho nền tối của app.
+ * Vẽ bằng nó lên giấy trắng thì nét ra xám nhạt, nhìn gần như không thấy gì.
+ *
+ * Mấy chấm chọn độ dày phía dưới thì VẪN dùng `MAU.chuChinh` và đúng như vậy:
+ * chúng nằm trên nền tối của màn hình, không nằm trên giấy.
+ */
+const MUC = MAU.nen;
+
 export function KhungVe({
   net,
   datNet,
@@ -87,7 +99,7 @@ export function KhungVe({
               <Path
                 key={i}
                 d={n.d}
-                stroke={MAU.chuChinh}
+                stroke={MUC}
                 strokeWidth={n.day}
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -97,7 +109,7 @@ export function KhungVe({
             {dangVe ? (
               <Path
                 d={dangVe}
-                stroke={MAU.chuChinh}
+                stroke={MUC}
                 strokeWidth={day}
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -176,7 +188,7 @@ export function XemLaiNet({ net, co, cao = 160 }: { net: Net[]; co?: { w: number
           <Path
             key={i}
             d={n.d}
-            stroke={MAU.chuChinh}
+            stroke={MUC}
             strokeWidth={n.day}
             strokeLinecap="round"
             strokeLinejoin="round"
