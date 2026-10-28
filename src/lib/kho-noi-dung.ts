@@ -166,23 +166,13 @@ export type DongChuyenGia = {
   /** Máy chủ tự tính lại mỗi khi có đánh giá mới. Null khi chưa ai chấm. */
   diem_tb: number | null;
   so_danh_gia: number;
-  /**
-   * Ba cột cũ, SẮP BỎ — bản tâm linh đang dọn sang bảng `chuyen_gia_mo_rong`.
-   *
-   * Khai `?` và giữ lại ở đây để mã này chạy được ở CẢ BA chặng của cuộc dọn:
-   * trước khi chạy 0032 (chỉ có cột cũ), giữa 0032 và 0033 (có cả hai), và sau
-   * 0033 (chỉ có bảng mới, cột cũ về undefined).
-   *
-   * Không có nấc đệm này thì thứ tự chạy trở thành thứ phải nhớ: dựng lại web
-   * trước khi chạy 0032 là hồ sơ rơi về bản sạch — "Luna" thay vì "Luna Chiêm
-   * Tinh". Bắt người ta nhớ đúng thứ tự là cách hỏng; làm cho sai thứ tự cũng
-   * không chết mới là cách đúng.
-   *
-   * Xoá ba dòng này SAU KHI đã chạy 0033.
-   */
-  ten_mo_rong?: string | null;
-  chuyen_sau_mo_rong?: string | null;
-  gioi_thieu_mo_rong?: string | null;
+  // Bản tâm linh KHÔNG nằm trong bảng này. Nó ở `chuyen_gia_mo_rong` — xem
+  // `DongMoRong`. Ba cột `_mo_rong` cũ đã bị migration 0033 xoá hẳn khỏi máy
+  // chủ ngày 2026-10-28, nên bảng này giờ chỉ còn bản sạch.
+  //
+  // Đó là chủ ý, không phải dọn cho gọn: bản iOS hỏi bằng `select('*')`, nên
+  // cái gì nằm trong bảng này là đi tới máy iOS. Không còn cột nào để đặt chữ
+  // tâm linh thì không còn cách nào quên.
 };
 
 /**
@@ -301,6 +291,10 @@ export const useTuVi = () => useBang<DongTuVi>('tu_vi_mau');
  * Bảng mở rộng chưa về thì CHỜ, đừng hiện bản sạch trước rồi nhấp một cái đổi
  * sang bản tâm linh: hai bảng về không cùng lúc, mà nhấp đổi tên chuyên gia
  * ngay trước mắt khách thì trông như app lỗi.
+ *
+ * Migration 0032 và 0033 đã chạy ngày 2026-10-28. Đo lại bằng chính khoá anon
+ * trong bản đã phát hành: `chuyen_gia` trả về 19 cột, 0 ô mang chữ tâm linh —
+ * trước đó là 22 cột, 6 ô.
  */
 /**
  * Một dòng của `chuyen_gia_mo_rong` — bản tâm linh, CHỈ nhánh này đọc.
@@ -331,14 +325,12 @@ export function useChuyenGia() {
           .filter((t) => t.dang_nhan)
           .sort((a, b) => a.thu_tu - b.thu_tu)
           .map((t) => {
-            // BA NẤC: bảng mới trước, rồi tới ba cột cũ sắp bỏ, cuối cùng mới
-            // là bản sạch. Nấc giữa chỉ sống tới khi chạy xong 0033.
             const m = theoMa.get(t.ma);
             return {
               ...t,
-              ten: m?.ten || t.ten_mo_rong || t.ten,
-              chuyen_sau: m?.chuyen_sau || t.chuyen_sau_mo_rong || t.chuyen_sau,
-              gioi_thieu: m?.gioi_thieu || t.gioi_thieu_mo_rong || t.gioi_thieu,
+              ten: m?.ten || t.ten,
+              chuyen_sau: m?.chuyen_sau || t.chuyen_sau,
+              gioi_thieu: m?.gioi_thieu || t.gioi_thieu,
             };
           })
       : null;
