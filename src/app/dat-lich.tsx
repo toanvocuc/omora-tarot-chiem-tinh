@@ -262,9 +262,9 @@ export default function DatLich() {
       // điền, tưởng chưa gửi được.
       if (router.canGoBack()) router.back();
       else router.replace('/chuyen-gia');
-      hoi('Đã gửi đơn', 'Đơn của bạn nằm trong mục Cá nhân. Xem ngay không?', [
+      hoi('Đã gửi', 'Buổi hẹn của bạn nằm ở mục Cá nhân, dòng Lịch hẹn. Xem ngay không?', [
         { nhan: 'Để sau', kieu: 'bo' },
-        { nhan: 'Xem đơn', onPress: () => router.push('/lich-cua-toi') },
+        { nhan: 'Xem lịch hẹn', onPress: () => router.push('/lich-cua-toi') },
       ]);
     } catch (e) {
       datLoi(e instanceof Error ? e.message : 'Chưa gửi được, thử lại giúp tôi.');
@@ -482,7 +482,7 @@ export default function DatLich() {
       <Khoi>
         <Nhan>Sau khi gửi</Nhan>
         <ChuThan>
-          Yêu cầu nằm trong mục Cá nhân, dòng Đơn của tôi — bạn theo dõi được thầy đã nhận chưa. Ở đó cũng
+          Buổi hẹn nằm trong mục Cá nhân, dòng Lịch hẹn — bạn theo dõi được thầy đã nhận chưa. Ở đó cũng
           có sẵn mấy nơi liên hệ của thầy để bạn nhắn trực tiếp.
         </ChuThan>
       </Khoi>

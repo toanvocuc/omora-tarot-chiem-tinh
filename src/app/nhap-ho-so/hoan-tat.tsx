@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { NenSao } from '@/components/nen-sao';
@@ -82,7 +82,22 @@ export default function HoanTat() {
       <NenSao cao={380} mo={0.85} />
       <BauTroiDong />
       <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
-        <View className="flex-1 justify-center px-7">
+        {/*
+          Khung cuộn chứ không phải View cứng.
+
+          Bản cũ là `flex-1 justify-center`: màn cao thì đẹp, màn thấp thì khung
+          co lại mà RUỘT KHÔNG CO, nên chữ tràn xuống đè lên khối nút bên dưới.
+          Thấy rõ nhất khi mở bản web trên iPhone màn nhỏ — thanh địa chỉ của
+          trình duyệt ăn mất một khúc, và dòng "Mỗi sáng một lá bài" nằm chồng
+          lên dòng Số chủ đạo.
+
+          `flexGrow: 1` + `justifyContent: center` giữ nguyên nét căn giữa khi
+          còn chỗ, và tự cho cuộn khi hết chỗ. Không phải chọn một trong hai.
+        */}
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 28 }}
+          showsVerticalScrollIndicator={false}>
           <View className="items-center">
             <VongSo so={so} co={150} />
           </View>
@@ -114,7 +129,7 @@ export default function HoanTat() {
               {loi}
             </Text>
           ) : null}
-        </View>
+        </ScrollView>
 
         {/* Hỏi quyền thông báo ngay tại đây, chỗ khách vừa thấy hồ sơ của mình hiện ra
             và đang muốn xem tiếp. Hỏi lúc mở app thì khách chưa biết app làm được gì

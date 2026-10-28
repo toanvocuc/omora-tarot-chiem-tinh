@@ -230,8 +230,23 @@ function DaiNoiBat({ ds }: { ds: SanPham[] }) {
       if (henCuon.current) clearTimeout(henCuon.current);
       henCuon.current = setTimeout(() => {
         henCuon.current = null;
-        const moi = Math.round(x / buoc);
-        datO(Math.min(ds.length - 1, Math.max(0, moi)));
+          const moi = Math.min(ds.length - 1, Math.max(0, Math.round(x / buoc)));
+        datO(moi);
+
+        /**
+         * TỰ KÉO VỀ THẺ. `snapToInterval` KHÔNG chạy trên web.
+         *
+         * Đo trên omorasoul.com: khung cuộn có `scroll-snap-type: none`, nên
+         * buông tay giữa hai thẻ là nó nằm lì đúng chỗ đó — màn hiện nửa thẻ
+         * này ghép nửa thẻ kia, tên hàng bị cắt cụt ở cả hai mép. Đúng cảnh
+         * sếp chê, và là cùng một lỗi với bánh xe chọn ngày.
+         *
+         * Mấy chấm chỉ vị trí thì vẫn đúng vì chúng làm tròn — nên nhìn vào
+         * tưởng dải đang ở thẻ số hai, mà mắt lại thấy hai nửa thẻ.
+         */
+        const dich = moi * buoc;
+        if (Math.abs(x - dich) > 0.5) cuon.current?.scrollTo({ x: dich, animated: true });
+
         datDungLai(false);
       }, 180);
     },

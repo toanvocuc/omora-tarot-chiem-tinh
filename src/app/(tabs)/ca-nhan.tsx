@@ -40,7 +40,7 @@ export default function CaNhan() {
     }, [])
   );
   /**
-   * Đếm đơn chưa xong, để dòng "Đơn của tôi" nói được tình hình ngay ở đây.
+   * Đếm buổi chưa xong, để dòng "Lịch hẹn" nói được tình hình ngay ở đây.
    *
    * Thẻ `Lịch của tôi` đã rời khỏi thanh tab, nên khách không còn liếc một cái
    * là thấy đơn có động tĩnh. Con số này bù lại chỗ đó. Thiếu nó thì ai tắt
@@ -115,14 +115,14 @@ export default function CaNhan() {
             <Nhom>
               <DongDan
                 bieu="calendar-outline"
-                ten="Đơn của tôi"
+                ten="Lịch hẹn"
                 gia={
                   cacDon === null
                     ? undefined
                     : cacDon.length === 0
                       ? 'Chưa có đơn nào'
                       : donChuaXong > 0
-                        ? `${donChuaXong} đơn chưa xong`
+                        ? `${donChuaXong} buổi đang chờ`
                         : 'Đã xong hết'
                 }
                 onPress={() => router.push('/lich-cua-toi')}

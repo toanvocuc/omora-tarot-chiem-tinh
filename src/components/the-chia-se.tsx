@@ -23,6 +23,31 @@ export const CAO_ANH = 1350;
 /** Tỷ lệ thu nhỏ để xem trước vừa màn hình, lúc chụp thì phóng lại. */
 export const TY_LE_XEM = 0.3;
 
+/**
+ * Cắt lời luận giải cho vừa hai dòng, tự tay chứ không nhờ `numberOfLines`.
+ *
+ * `numberOfLines` trên web là `-webkit-line-clamp`. Nó cắt đúng hai dòng,
+ * nhưng dấu ba chấm nó thêm vào là thứ trình duyệt VẼ chứ không nằm trong cây
+ * tài liệu — mà html2canvas chỉ đọc cây tài liệu. Nên ảnh xuất ra có câu cụt
+ * lủn, không dấu hiệu gì báo là còn nữa: "…cây cối và dòng nước. Lá bài".
+ *
+ * Lấy trọn câu đầu nếu nó vừa; dài quá thì cắt ở ranh giới từ rồi thêm dấu.
+ * Làm vậy thì máy thật và trình duyệt ra cùng một kết quả.
+ */
+const DAI_TOI_DA = 118;
+
+function catGon(chu: string): string {
+  const sach = chu.trim();
+  if (sach.length <= DAI_TOI_DA) return sach;
+
+  const hetCau = sach.indexOf('. ');
+  if (hetCau > 0 && hetCau + 1 <= DAI_TOI_DA) return sach.slice(0, hetCau + 1);
+
+  const cat = sach.slice(0, DAI_TOI_DA);
+  const khoang = cat.lastIndexOf(' ');
+  return (khoang > 0 ? cat.slice(0, khoang) : cat).replace(/[,.;:]$/, '') + '…';
+}
+
 export const TheChiaSe = forwardRef<View, { daRut: LaDaRut; tyLe?: number }>(
   function TheChiaSe({ daRut, tyLe = 1 }, ref) {
     const p = (n: number) => n * tyLe; // đổi cỡ theo tỷ lệ đang vẽ
@@ -55,7 +80,7 @@ export const TheChiaSe = forwardRef<View, { daRut: LaDaRut; tyLe?: number }>(
           </Text>
 
           <View style={{ marginTop: p(44) }}>
-            <LaBai daRut={daRut} rong={p(340)} />
+            <LaBai daRut={daRut} rong={p(318)} />
           </View>
 
           <Text
@@ -85,7 +110,6 @@ export const TheChiaSe = forwardRef<View, { daRut: LaDaRut; tyLe?: number }>(
           </Text>
 
           <Text
-            numberOfLines={2}
             style={{
               fontFamily: CHU.than,
               fontSize: p(34),
@@ -94,13 +118,23 @@ export const TheChiaSe = forwardRef<View, { daRut: LaDaRut; tyLe?: number }>(
               marginTop: p(32),
               textAlign: 'center',
             }}>
-            {yNghia(daRut)}
+            {catGon(yNghia(daRut))}
           </Text>
 
-          <View style={{ flex: 1 }} />
+          {/*
+            Khe thở giữa câu mô tả và logo.
+
+            Đo tấm khổ thật ngày 2026-10-29: câu mô tả kết thúc ở 1070, logo bắt
+            đầu đúng 1070 — dính sát nhau không một khoảng trống, nên nhìn như
+            logo cắt ngang câu chữ. Và logo kết ở 1295 trong khi lề dưới chỉ cho
+            tới 1278, tức tràn 17px.
+            `flex: 1` một mình không cứu được: hết chỗ thì nó co về 0. Phải có
+            `minHeight` để khe này không bao giờ biến mất.
+          */}
+          <View style={{ flex: 1, minHeight: p(30) }} />
 
           <View style={{ alignItems: 'center' }}>
-            <Logo rong={p(230)} />
+            <Logo rong={p(200)} />
           </View>
         </View>
       </View>
