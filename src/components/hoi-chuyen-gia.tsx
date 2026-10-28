@@ -46,7 +46,7 @@ export function HoiChuyenGia({ loiMoi, manHinh }: Props) {
         {loiMoi}
       </Text>
       <Pressable
-        onPress={() => router.push('/')}
+        onPress={() => router.push('/chuyen-gia')}
         className="rounded-xl bg-vang px-5 py-3 active:opacity-80">
         <Text style={{ fontFamily: CHU.thanDam }} className="text-center text-nen">
           Xem người có thể trả lời bạn

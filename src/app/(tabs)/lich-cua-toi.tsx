@@ -176,7 +176,7 @@ export default function LichCuaToi() {
         <View>
           <Trong loi="Bạn chưa đặt buổi tư vấn nào. Chọn một chuyên gia rồi gửi câu hỏi của bạn." />
           <View className="mt-5">
-            <Nut nhan="Xem danh sách chuyên gia" onPress={() => router.push('/')} />
+            <Nut nhan="Xem danh sách chuyên gia" onPress={() => router.push('/chuyen-gia')} />
           </View>
         </View>
       ) : null}

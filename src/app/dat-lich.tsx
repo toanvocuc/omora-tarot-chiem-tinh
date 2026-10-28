@@ -261,7 +261,7 @@ export default function DatLich() {
       // xong phía sau hộp thoại thì khách bấm Đóng là nhìn lại cái biểu mẫu vừa
       // điền, tưởng chưa gửi được.
       if (router.canGoBack()) router.back();
-      else router.replace('/');
+      else router.replace('/chuyen-gia');
       hoi('Đã gửi đơn', 'Đơn của bạn nằm trong mục Cá nhân. Xem ngay không?', [
         { nhan: 'Để sau', kieu: 'bo' },
         { nhan: 'Xem đơn', onPress: () => router.push('/lich-cua-toi') },

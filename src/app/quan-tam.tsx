@@ -114,7 +114,7 @@ export default function ManQuanTam() {
       <ManHinh quayLai tieuDe="Danh sách quan tâm">
         <Trong loi="Bạn chưa gom món nào. Vào khu trưng bày, thấy món nào ưng thì thêm vào đây." />
         <View className="mt-5">
-          <Nut nhan="Xem khu trưng bày" onPress={() => router.replace('/trung-bay')} />
+          <Nut nhan="Xem shop" onPress={() => router.replace('/trung-bay')} />
         </View>
       </ManHinh>
     );

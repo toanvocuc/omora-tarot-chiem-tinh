@@ -167,15 +167,22 @@ export type DongChuyenGia = {
   diem_tb: number | null;
   so_danh_gia: number;
   /**
-   * Ba cột bản tâm linh, CHỈ nhánh Android/web này đọc. Bản iOS không bao giờ
-   * đọc chúng — xem `supabase/migrations/0030_ban_tam_linh_cho_android.sql`.
+   * Ba cột cũ, SẮP BỎ — bản tâm linh đang dọn sang bảng `chuyen_gia_mo_rong`.
    *
-   * `useChuyenGia` đè chúng lên ba cột gốc ngay khi đọc xong, nên mọi màn phía
-   * sau cứ dùng `ten` / `chuyen_sau` / `gioi_thieu` như cũ.
+   * Khai `?` và giữ lại ở đây để mã này chạy được ở CẢ BA chặng của cuộc dọn:
+   * trước khi chạy 0032 (chỉ có cột cũ), giữa 0032 và 0033 (có cả hai), và sau
+   * 0033 (chỉ có bảng mới, cột cũ về undefined).
+   *
+   * Không có nấc đệm này thì thứ tự chạy trở thành thứ phải nhớ: dựng lại web
+   * trước khi chạy 0032 là hồ sơ rơi về bản sạch — "Luna" thay vì "Luna Chiêm
+   * Tinh". Bắt người ta nhớ đúng thứ tự là cách hỏng; làm cho sai thứ tự cũng
+   * không chết mới là cách đúng.
+   *
+   * Xoá ba dòng này SAU KHI đã chạy 0033.
    */
-  ten_mo_rong: string | null;
-  chuyen_sau_mo_rong: string | null;
-  gioi_thieu_mo_rong: string | null;
+  ten_mo_rong?: string | null;
+  chuyen_sau_mo_rong?: string | null;
+  gioi_thieu_mo_rong?: string | null;
 };
 
 /**
@@ -202,6 +209,9 @@ const MAU_BANG: Record<string, unknown[]> = {
   con_so_bieu_do: MAU_CON_SO_BIEU_DO,
   tu_vi_mau: MAU_TU_VI,
   chuyen_gia: MAU_CHUYEN_GIA_CO_SAO,
+  // Dữ liệu mẫu đã mang sẵn chữ tâm linh trong chính cột gốc, nên bảng mở rộng
+  // để rỗng: đè lên cũng ra đúng thứ đang có.
+  chuyen_gia_mo_rong: [],
 };
 
 function useBang<T>(bang: string) {
@@ -252,35 +262,86 @@ export const useMuiTen = () => useBang<DongMuiTen>('mui_ten_bieu_do');
 export const useConSo = () => useBang<DongConSo>('con_so_bieu_do');
 export const useTuVi = () => useBang<DongTuVi>('tu_vi_mau');
 
-/** Thầy đang nhận khách, xếp theo thứ tự đã định. */
 /**
  * Danh sách chuyên gia, ĐÃ đè bản tâm linh lên bản sạch.
  *
- * Ba cột `_mo_rong` chỉ nhánh này đọc. Đè ngay ở đây, một lần, thay vì bắt
- * từng màn tự nhớ: `(tabs)/index.tsx`, `thay.tsx`, `dat-lich.tsx` và
- * `ho-so-thay.tsx` đều đọc `chuyen_sau`, sót một chỗ là hồ sơ hiện nửa nạc nửa
- * mỡ — tên "Luna" mà chuyên sâu lại là "Tarot, Chiêm tinh".
+ * Bản tâm linh nằm ở BẢNG RIÊNG `chuyen_gia_mo_rong`, không phải mấy cột
+ * `_mo_rong` cũ trong chính bảng `chuyen_gia`.
  *
- * CÓ THÌ DÙNG, KHÔNG THÌ LẤY CỘT GỐC. Quên điền cột mở rộng thì bên này hiện
- * bản sạch, nhạt đi một chút; làm ngược lại thì iOS hiện nội dung tâm linh,
- * điều 2.5.19, khoá tài khoản nhà phát triển. Hỏng về phía nhạt sửa lúc nào
- * cũng được, hỏng về phía kia thì không.
+ * ───────────────────────────────────────────── VÌ SAO PHẢI LÀ BẢNG RIÊNG
+ *
+ * Bản iOS hỏi máy chủ bằng `select('*')`. Để ba cột đó nằm trong `chuyen_gia`
+ * thì chữ "Tarot, Chiêm tinh" ĐI TỚI máy iOS trong gói mạng — đo ngày
+ * 2026-10-28 bằng chính khoá anon nằm trong bản đã phát hành: 22 cột trả về,
+ * 6 ô mang chữ tâm linh. Màn hình iOS không vẽ chúng ra, nhưng ai mở trình bắt
+ * gói ra cũng đọc được, và đó không phải thứ muốn đem ra cãi với người duyệt
+ * app khi mức phạt của điều 2.5.19 là khoá tài khoản nhà phát triển.
+ *
+ * Bản iOS đã phát hành thì không sửa được nữa, nên cách sửa phải hợp với một
+ * khách hàng đã đóng băng: dời cột sang bảng khác thì `select('*')` của nó tự
+ * nhiên trả về ít đi. Bên đó không phải đổi một dòng mã nào.
+ *
+ * Và từ đó trong `chuyen_gia` KHÔNG CÒN CHỖ để đặt chữ tâm linh — luật đổi từ
+ * "nhớ đừng gõ vào ô này" thành "không có ô đó".
+ *
+ * ──────────────────────────────────────────────────────────── CÁCH ĐÈ
+ *
+ * Đè ngay ở đây, một lần, thay vì bắt từng màn tự nhớ: `(tabs)/chuyen-gia.tsx`,
+ * `thay.tsx`, `dat-lich.tsx` và `ho-so-thay.tsx` đều đọc `chuyen_sau`, sót một
+ * chỗ là hồ sơ hiện nửa nạc nửa mỡ — tên "Luna" mà chuyên sâu lại là "Tarot,
+ * Chiêm tinh".
+ *
+ * CÓ THÌ DÙNG, KHÔNG THÌ LẤY BẢNG GỐC. Quên điền bản mở rộng thì bên này hiện
+ * bản sạch, nhạt đi một chút; làm ngược lại thì iOS hiện nội dung tâm linh.
+ * Hỏng về phía nhạt sửa lúc nào cũng được, hỏng về phía kia thì không.
  *
  * Chuỗi rỗng cũng coi như chưa điền — `||` chứ không phải `??` — vì ô trống
  * trong bảng quản trị lưu xuống thành '' chứ không phải null.
+ *
+ * Bảng mở rộng chưa về thì CHỜ, đừng hiện bản sạch trước rồi nhấp một cái đổi
+ * sang bản tâm linh: hai bảng về không cùng lúc, mà nhấp đổi tên chuyên gia
+ * ngay trước mắt khách thì trông như app lỗi.
  */
+/**
+ * Một dòng của `chuyen_gia_mo_rong` — bản tâm linh, CHỈ nhánh này đọc.
+ *
+ * Ô nào để trống thì lấy cột cùng tên bên `chuyen_gia`.
+ */
+export type DongMoRong = {
+  ma: string;
+  ten: string | null;
+  chuyen_sau: string | null;
+  gioi_thieu: string | null;
+};
+
 export function useChuyenGia() {
-  const { dong, loi, dangTai } = useBang<DongChuyenGia>('chuyen_gia');
-  const ds = dong
-    ? [...dong]
-        .filter((t) => t.dang_nhan)
-        .sort((a, b) => a.thu_tu - b.thu_tu)
-        .map((t) => ({
-          ...t,
-          ten: t.ten_mo_rong || t.ten,
-          chuyen_sau: t.chuyen_sau_mo_rong || t.chuyen_sau,
-          gioi_thieu: t.gioi_thieu_mo_rong || t.gioi_thieu,
-        }))
-    : null;
-  return { dong: ds, loi, dangTai };
+  const goc = useBang<DongChuyenGia>('chuyen_gia');
+  const moRong = useBang<DongMoRong>('chuyen_gia_mo_rong');
+
+  // Bảng mở rộng hỏng — hoặc chưa tồn tại, lúc 0032 chưa chạy — thì coi như
+  // không có, KHÔNG phải hỏng cả màn: thà hiện hồ sơ bản sạch còn hơn hiện một
+  // màn lỗi. Lỗi của bảng gốc mới là lỗi thật, vì thiếu nó thì chẳng có gì để
+  // hiện.
+  const theoMa = new Map((moRong.dong ?? []).map((m) => [m.ma, m]));
+  const choMoRong = moRong.dong === null && moRong.loi === null;
+
+  const ds =
+    goc.dong && !choMoRong
+      ? [...goc.dong]
+          .filter((t) => t.dang_nhan)
+          .sort((a, b) => a.thu_tu - b.thu_tu)
+          .map((t) => {
+            // BA NẤC: bảng mới trước, rồi tới ba cột cũ sắp bỏ, cuối cùng mới
+            // là bản sạch. Nấc giữa chỉ sống tới khi chạy xong 0033.
+            const m = theoMa.get(t.ma);
+            return {
+              ...t,
+              ten: m?.ten || t.ten_mo_rong || t.ten,
+              chuyen_sau: m?.chuyen_sau || t.chuyen_sau_mo_rong || t.chuyen_sau,
+              gioi_thieu: m?.gioi_thieu || t.gioi_thieu_mo_rong || t.gioi_thieu,
+            };
+          })
+      : null;
+
+  return { dong: ds, loi: goc.loi, dangTai: ds === null && goc.loi === null };
 }

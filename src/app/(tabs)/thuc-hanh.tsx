@@ -16,8 +16,8 @@
  * nơi không có điều khoản tương đương. Đây là hai sản phẩm, không phải một app
  * giấu bài.
  *
- * Tên tệp giữ nguyên `kham-pha` để đường dẫn cũ không gãy; nhãn trên thanh tab
- * đổi thành "Thực hành".
+ * Tab này nay là thẻ thứ hai, sau Khám phá. Bản iOS để nó đứng đầu để đỡ điều
+ * 4.3(b); bên này không cần, nên đừng đồng bộ thứ tự tab giữa hai nhánh.
  */
 
 import { router } from 'expo-router';
@@ -107,7 +107,7 @@ export default function ThucHanh() {
           nhan="Khi cần một người"
           ten="Đặt một buổi trò chuyện"
           mo="Khi trong lòng có điều cần nói với người khác"
-          onPress={() => router.push('/')}
+          onPress={() => router.push('/chuyen-gia')}
         />
       </View>
     </ManHinh>

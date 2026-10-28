@@ -45,7 +45,7 @@ export default function ManSanPham() {
       <ManHinh quayLai tieuDe="Không thấy món này">
         <Trong loi={loi ?? 'Món này không còn được bày nữa, hoặc đường dẫn đã cũ.'} />
         <View className="mt-5">
-          <Nut nhan="Về khu trưng bày" kieu="vien" onPress={() => router.replace('/trung-bay')} />
+          <Nut nhan="Về shop" kieu="vien" onPress={() => router.replace('/trung-bay')} />
         </View>
       </ManHinh>
     );

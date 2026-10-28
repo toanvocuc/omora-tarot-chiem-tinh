@@ -5,22 +5,23 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CAO_THANH_TAB, CHU, MAU } from '@/constants/giao-dien';
 
 /**
- * Năm thẻ tab. Thứ tự ở đây chính là thứ tự khách — và người duyệt app của
- * Apple — nhìn thấy, nên nó không phải chuyện bày biện.
+ * Năm thẻ tab. Thứ tự ở đây chính là thứ tự khách nhìn thấy, nên nó không phải
+ * chuyện bày biện.
  *
  * ĐÂY LÀ NHÁNH ANDROID VÀ WEB, không phải iOS. Hai cây mã tách hẳn nhau và
  * phải giữ như vậy: nhánh iOS `phase-thuc-hanh` KHÔNG có một tệp tarot nào.
  * Đem tarot về bên đó là điều 2.5.19 — tính năng ẩn — và mức phạt của nó là
  * khoá tài khoản nhà phát triển. Sửa phần thực hành thì chép TỪ bên này SANG,
- * không bao giờ trộn nhánh.
+ * không bao giờ trộn nhánh. Thứ tự tab cũng vậy: bên iOS Thực hành đứng đầu để
+ * đỡ điều 4.3(b), bên này Khám phá đứng đầu — đừng đồng bộ hai bên.
  *
- * Bên này giữ đủ cả hai: Khám phá (tarot, cung hoàng đạo, thần số) và Thực
- * hành (thở, ngồi yên, viết, vẽ). Thẻ đầu vẫn là CHUYÊN GIA vì bản này không
- * chịu sức ép 4.3(b) như bản iOS.
+ * `index` là MÀN MỞ ĐẦU: lá bài hôm nay, rồi tới danh sách Khám phá. Nó mang
+ * tên `index` chứ không phải `/kham-pha` để "/" mở ra đúng thứ muốn khoe, và
+ * mấy chỗ gọi router.replace("/") sau khi đăng nhập vẫn chạy nguyên.
  *
- * `index` là danh sách chuyên gia chứ không phải một màn riêng tên
- * /chuyen-gia: nhờ vậy "/" mở ra đúng thứ muốn khoe, và mấy chỗ gọi
- * router.replace("/") sau khi đăng nhập vẫn chạy nguyên.
+ * Danh sách chuyên gia nằm ở `/chuyen-gia` — trước đây nó chiếm chỗ `index`.
+ * Chỗ nào muốn mở danh sách đó PHẢI gọi `/chuyen-gia`, vì "/" giờ là màn mở
+ * đầu.
  *
  * `lich-cua-toi` KHÔNG còn trên thanh tab — nó nằm trong mục Cá nhân. Nhưng
  * TUYẾN thì giữ nguyên tên, vì cột `thong_bao.duong_dan` dưới máy chủ đang
@@ -54,10 +55,8 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Chuyên gia',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="people-outline" color={color} size={size} />
-          ),
+          title: 'Khám phá',
+          tabBarIcon: ({ color, size }) => <Ionicons name="planet-outline" color={color} size={size} />,
         }}
       />
       <Tabs.Screen
@@ -68,19 +67,21 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="trung-bay"
+        name="chuyen-gia"
         options={{
-          title: 'Trưng bày',
+          title: 'Chuyên gia',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="storefront-outline" color={color} size={size} />
+            <Ionicons name="people-outline" color={color} size={size} />
           ),
         }}
       />
       <Tabs.Screen
-        name="kham-pha"
+        name="trung-bay"
         options={{
-          title: 'Khám phá',
-          tabBarIcon: ({ color, size }) => <Ionicons name="planet-outline" color={color} size={size} />,
+          title: 'Shop',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="storefront-outline" color={color} size={size} />
+          ),
         }}
       />
       <Tabs.Screen

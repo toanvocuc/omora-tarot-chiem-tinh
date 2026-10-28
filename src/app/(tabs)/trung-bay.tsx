@@ -51,7 +51,7 @@ export default function TrungBay() {
   const soMon = quanTam.reduce((t, m) => t + m.soLuong, 0);
 
   return (
-    <ManHinh tieuDe="Trưng bày" phu="Đá phong thuỷ, ngọc và đồ bày của cửa hàng.">
+    <ManHinh tieuDe="Shop" phu="Đá phong thuỷ, ngọc và đồ bày của cửa hàng.">
       {/* Lối vào danh sách quan tâm. Chỉ hiện khi đã gom được món nào — chưa gom
           gì mà bày một cái thùng rỗng ra thì chỉ tổ làm khách thắc mắc. */}
       {soMon > 0 ? (
