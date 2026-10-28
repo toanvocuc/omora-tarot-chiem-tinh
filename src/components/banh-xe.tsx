@@ -110,6 +110,28 @@ function BanhXe({ gia, dat, muc }: { gia: number; dat: (v: number) => void; muc:
     henCuon.current = setTimeout(() => {
       henCuon.current = null;
       dangKeo.current = false;
+
+      /**
+       * TỰ KÉO VỀ MỐC. `snapToInterval` KHÔNG chạy trên web.
+       *
+       * Đo ngày 2026-10-28 trên omorasoul.com: khung cuộn có
+       * `scroll-snap-type: none`, và thả tay ở giữa hai dòng thì nó nằm lì
+       * đúng chỗ đó — đo được lệch 22px, tức nửa dòng.
+       *
+       * Hậu quả không phải sai số: `chot` làm tròn nên giá trị lưu vẫn đúng.
+       * Hỏng ở chỗ NHÌN. Màu chữ nội suy theo khoảng cách tới tâm, nên đứng
+       * giữa là HAI số cùng sáng như nhau — đo được cả "2000" lẫn "2001" ra
+       * cùng một màu rgb(186,168,148). Khách không biết mình đang chọn số nào.
+       *
+       * Kéo về mốc rồi thì chỉ còn một dòng sáng, và con số nhìn thấy đúng là
+       * con số được lưu.
+       */
+      const dich = viTriCuon - (viTriCuon % CAO_DONG) + (viTriCuon % CAO_DONG >= CAO_DONG / 2 ? CAO_DONG : 0);
+      // Ngưỡng 0.5px: so bằng 0 thì số thực luôn lệch tí xíu và nó kéo mãi.
+      if (Math.abs(viTriCuon - dich) > 0.5) {
+        ref.current?.scrollToOffset({ offset: dich, animated: true });
+      }
+
       chotRef.current(viTriCuon);
     }, 180);
   }, []);
@@ -224,8 +246,15 @@ function BanhXe({ gia, dat, muc }: { gia: number; dat: (v: number) => void; muc:
   );
 }
 
-/** Khung bọc mấy cột: dải sáng ở giữa, hai đầu mờ dần cho ra mặt cong. */
-function Khung({ nhan, children }: { nhan: string[]; children: React.ReactNode }) {
+/**
+ * Khung bọc mấy cột: dải sáng ở giữa, hai đầu mờ dần cho ra mặt cong.
+ *
+ * `tomTat` là dòng chữ dưới khung, đọc ra thành lời thứ đang chọn. Dải sáng và
+ * màu chữ đã nói được điều đó, nhưng chỉ nói bằng hình: ba cột số rời nhau,
+ * mắt phải tự ghép. Một dòng chữ thì không phải ghép, và cũng không phụ thuộc
+ * vào việc bánh xe có đứng đúng mốc hay không.
+ */
+function Khung({ nhan, tomTat, children }: { nhan: string[]; tomTat?: string; children: React.ReactNode }) {
   return (
     <View>
       <View className="mb-2 flex-row">
@@ -269,6 +298,14 @@ function Khung({ nhan, children }: { nhan: string[]; children: React.ReactNode }
           style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: DEM }}
         />
       </View>
+
+      {tomTat ? (
+        <Text
+          style={{ fontFamily: CHU.thanDam, color: MAU.vang }}
+          className="mt-3 text-center text-base">
+          {tomTat}
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -296,9 +333,13 @@ export function BanhXeNgaySinh({
     if (ngay > soNgay) dat({ ngay: soNgay });
   }, [ngay, soNgay, dat]);
 
+  const ngayChon = ngayHopLe(ngay, thang, nam);
+
   return (
-    <Khung nhan={['Ngày', 'Tháng', 'Năm']}>
-      <BanhXe gia={ngayHopLe(ngay, thang, nam)} dat={(v) => dat({ ngay: v })} muc={mucNgay} />
+    <Khung
+      nhan={['Ngày', 'Tháng', 'Năm']}
+      tomTat={`Ngày ${ngayChon} tháng ${thang} năm ${nam}`}>
+      <BanhXe gia={ngayChon} dat={(v) => dat({ ngay: v })} muc={mucNgay} />
       <BanhXe gia={thang} dat={(v) => dat({ thang: v })} muc={mucThang} />
       <BanhXe gia={nam} dat={(v) => dat({ nam: v })} muc={mucNam} />
     </Khung>
@@ -318,7 +359,9 @@ export function BanhXeGioSinh({
   const mucPhut = useMemo(() => day(0, 59), []);
 
   return (
-    <Khung nhan={['Giờ', 'Phút']}>
+    <Khung
+      nhan={['Giờ', 'Phút']}
+      tomTat={`${String(gio).padStart(2, '0')}:${String(phut).padStart(2, '0')}`}>
       <BanhXe gia={gio} dat={(v) => dat({ gio: v })} muc={mucGio} />
       <BanhXe gia={phut} dat={(v) => dat({ phut: v })} muc={mucPhut} />
     </Khung>
@@ -355,10 +398,15 @@ export function BanhXeGioHen({
   // Tới đúng giờ muộn nhất thì chỉ còn phút 0: 21h30 là đã quá giờ làm việc.
   const mucPhut = useMemo(() => day(0, gio >= gioMuon ? 0 : 59), [gio, gioMuon]);
 
+  const gioChon = Math.min(Math.max(gio, gioSom), gioMuon);
+  const phutChon = gio >= gioMuon ? 0 : phut;
+
   return (
-    <Khung nhan={['Giờ', 'Phút']}>
-      <BanhXe gia={Math.min(Math.max(gio, gioSom), gioMuon)} dat={(v) => dat({ gio: v })} muc={mucGio} />
-      <BanhXe gia={gio >= gioMuon ? 0 : phut} dat={(v) => dat({ phut: v })} muc={mucPhut} />
+    <Khung
+      nhan={['Giờ', 'Phút']}
+      tomTat={`Hẹn lúc ${String(gioChon).padStart(2, '0')}:${String(phutChon).padStart(2, '0')}`}>
+      <BanhXe gia={gioChon} dat={(v) => dat({ gio: v })} muc={mucGio} />
+      <BanhXe gia={phutChon} dat={(v) => dat({ phut: v })} muc={mucPhut} />
     </Khung>
   );
 }

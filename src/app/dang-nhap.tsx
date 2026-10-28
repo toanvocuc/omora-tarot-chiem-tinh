@@ -70,8 +70,8 @@ export default function DangNhap() {
           <Text
             style={{ fontFamily: CHU.hoaDam, fontSize: 38, lineHeight: 44 }}
             className="text-center text-chu-chinh">
-            Giữ lại{'\n'}
-            <Text style={{ color: MAU.vang }}>hồ sơ của bạn</Text>
+            Lưu giữ{'\n'}
+            <Text style={{ color: MAU.vang }}>dấu ấn của riêng bạn</Text>
           </Text>
         </View>
 
