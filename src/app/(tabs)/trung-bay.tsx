@@ -211,6 +211,40 @@ function DaiNoiBat({ ds }: { ds: SanPham[] }) {
     [buoc, ds.length]
   );
 
+  /**
+   * Chốt lại khi CUỘN ĐÃ DỪNG, vì trên web hai chỗ chốt kia không bao giờ chạy.
+   *
+   * `ScrollViewBase` của react-native-web chỉ gọi đúng một thứ: `onScroll`.
+   * `onMomentumScrollEnd` và `onScrollEndDrag` được truyền xuống nhưng không
+   * có mã nào phát ra chúng — đọc
+   * `node_modules/react-native-web/dist/exports/ScrollView/ScrollViewBase.js`.
+   *
+   * Thiếu chỗ này thì trên web mấy chấm chỉ vị trí không chạy theo tay khách,
+   * và bộ đếm tự chạy vẫn tưởng đang ở món cũ nên bốn giây sau nó giật dải về
+   * đúng chỗ khách vừa vuốt đi. Cùng một lỗi với bánh xe chọn giờ.
+   */
+  const henCuon = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dangCuon = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const x = e.nativeEvent.contentOffset.x;
+      if (henCuon.current) clearTimeout(henCuon.current);
+      henCuon.current = setTimeout(() => {
+        henCuon.current = null;
+        const moi = Math.round(x / buoc);
+        datO(Math.min(ds.length - 1, Math.max(0, moi)));
+        datDungLai(false);
+      }, 180);
+    },
+    [buoc, ds.length]
+  );
+
+  useEffect(
+    () => () => {
+      if (henCuon.current) clearTimeout(henCuon.current);
+    },
+    []
+  );
+
   return (
     <View className="mt-3">
       <ScrollView
@@ -221,6 +255,8 @@ function DaiNoiBat({ ds }: { ds: SanPham[] }) {
         snapToAlignment="start"
         decelerationRate="fast"
         onScrollBeginDrag={() => datDungLai(true)}
+        onScroll={dangCuon}
+        scrollEventThrottle={16}
         onMomentumScrollEnd={xongVuot}
         // Vuốt xong mà không có quán tính thì `onMomentumScrollEnd` không nổ,
         // và dải sẽ đứng im mãi. Bắt thêm ở đây cho chắc.

@@ -482,7 +482,7 @@ export default function DatLich() {
       <Khoi>
         <Nhan>Sau khi gửi</Nhan>
         <ChuThan>
-          Yêu cầu nằm trong mục Lịch của tôi, bạn theo dõi được thầy đã nhận chưa. Ở đó cũng
+          Yêu cầu nằm trong mục Cá nhân, dòng Đơn của tôi — bạn theo dõi được thầy đã nhận chưa. Ở đó cũng
           có sẵn mấy nơi liên hệ của thầy để bạn nhắn trực tiếp.
         </ChuThan>
       </Khoi>
