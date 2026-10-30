@@ -5,6 +5,7 @@ import { Dimensions, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BauTroiDong } from '@/components/bau-troi-dong';
+import { GachSao } from '@/components/gach-sao';
 import { Logo } from '@/components/logo';
 import { Nut } from '@/components/nen';
 import { CHU, MAU } from '@/constants/giao-dien';
@@ -42,6 +43,7 @@ export default function ChaoMung() {
       <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
         <View className="items-center pt-10">
           <Logo rong={150} />
+          <GachSao rong={150} />
         </View>
 
         <View className="flex-1" />

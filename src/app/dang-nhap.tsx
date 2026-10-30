@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Logo } from '@/components/logo';
 import { BauTroiDong } from '@/components/bau-troi-dong';
+import { GachSao } from '@/components/gach-sao';
 import { Nut } from '@/components/nen';
 import { NutDangNhap } from '@/components/nut-dang-nhap';
 import { CHU, MAU } from '@/constants/giao-dien';
@@ -64,6 +65,7 @@ export default function DangNhap() {
             Dính sát đỉnh thì nửa trên màn hình trống hoác. */}
         <View className="flex-1 items-center justify-center">
           <Logo rong={132} />
+          <GachSao rong={132} />
         </View>
 
         <View className="px-8">
