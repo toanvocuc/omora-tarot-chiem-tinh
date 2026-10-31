@@ -11,7 +11,9 @@ import { Dimensions, View } from 'react-native';
 
 import { MAU } from '@/constants/giao-dien';
 
-const RONG = Dimensions.get('window').width;
+import { rongKhung } from '@/constants/khung-web';
+
+const RONG = rongKhung();
 
 export function NenSao({
   cao = 420,

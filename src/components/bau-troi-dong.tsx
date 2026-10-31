@@ -32,8 +32,11 @@ import Animated, {
 import Svg, { Path } from 'react-native-svg';
 
 import { MAU } from '@/constants/giao-dien';
+import { rongKhung } from '@/constants/khung-web';
 
-const { width: RONG, height: CAO } = Dimensions.get('window');
+const { height: CAO } = Dimensions.get('window');
+/** Rải sao trong CỘT, không phải cả cửa sổ — xem khung-web.ts. */
+const RONG = rongKhung();
 
 const SO_SAO = 16;
 /** Sao băng chỉ bay ở nửa trên. Dưới đó là chỗ của chữ. */

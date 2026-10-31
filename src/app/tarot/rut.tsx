@@ -21,8 +21,10 @@ import { useBoBai } from '@/lib/kho-noi-dung';
 import { datPhien } from '@/lib/phien-rut';
 import { rutBai, VI_TRI, type KieuTrai, type LaDaRut } from '@/lib/tarot';
 
+import { rongKhung } from '@/constants/khung-web';
+
 const SO_LA = 13;
-const RONG_MAN = Dimensions.get('window').width;
+const RONG_MAN = rongKhung();
 const RONG_LA = Math.min(78, RONG_MAN * 0.2);
 
 // Xoè bài: tính theo bước ngang cố định rồi cong lên bằng một đường parabol.

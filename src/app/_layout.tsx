@@ -22,6 +22,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { HopThoai } from '@/components/hop-thoai';
 import { Chuong } from '@/components/chuong';
 import { CHU, MAU } from '@/constants/giao-dien';
+import { KHUNG_COT, NEN_NGOAI } from '@/constants/khung-web';
 import { khiDoiTaiKhoan } from '@/lib/doi-tai-khoan';
 import { datCoHoSo, docHoSo } from '@/lib/ho-so';
 import { goHetNhacHen } from '@/lib/nhac-hen';
@@ -291,8 +292,10 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: NEN_NGOAI }}>
       <StatusBar style="light" />
+      {/* Cột nội dung. Trên máy thật `KHUNG_COT` chỉ là `flex: 1`. */}
+      <View style={KHUNG_COT}>
       <Stack
         screenOptions={{
           headerShown: false,
@@ -316,6 +319,7 @@ export default function RootLayout() {
           mọi màn và sống qua các lần chuyển màn. KHÔNG kèm điều kiện `coPhien`
           như chuông: màn đăng nhập và màn nhập hồ sơ cũng cần báo lỗi. */}
       <HopThoai />
+      </View>
     </GestureHandlerRootView>
   );
 }

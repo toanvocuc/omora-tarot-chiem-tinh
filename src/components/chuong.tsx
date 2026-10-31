@@ -42,6 +42,8 @@ import { CHU, MAU } from '@/constants/giao-dien';
 import { luc, useHopThongBao, type ThongBao } from '@/lib/hop-thong-bao';
 import { ngheThongBaoToi } from '@/lib/tra-loi-thong-bao';
 
+import { rongKhung } from '@/constants/khung-web';
+
 const CO = 52;
 /** Không ai động vào bao lâu thì bong bóng chìm xuống. */
 const CHO_MO_DI = 5000;
@@ -81,7 +83,9 @@ export function Chuong() {
   const [mo, datMo] = useState(false);
   const [daChon, datDaChon] = useState<string[]>([]);
   const giamChuyenDong = useReducedMotion();
-  const { width: rong, height: cao } = useWindowDimensions();
+  const { width: rongCuaSo, height: cao } = useWindowDimensions();
+  // Chuông thả trong CỘT chứ không cả cửa sổ — xem khung-web.ts.
+  const rong = rongKhung(rongCuaSo);
   const le = useSafeAreaInsets();
 
   const traiNhat = LE;

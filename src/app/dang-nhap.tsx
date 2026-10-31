@@ -15,7 +15,7 @@ import { dangNhapApple, dangNhapGoogle, KhachHuy, loiDeHieu } from '@/lib/dang-n
 import { datCoHoSo, docHoSo } from '@/lib/ho-so';
 import { dangNhapAnDanh } from '@/lib/supabase';
 
-const { width: RONG, height: CAO } = Dimensions.get('window');
+const { height: CAO } = Dimensions.get('window');
 
 export default function DangNhap() {
   const [dangChay, setDangChay] = useState<'google' | 'apple' | 'an-danh' | null>(null);
@@ -49,7 +49,7 @@ export default function DangNhap() {
       {/* Cùng dải ngân hà với màn chào mừng, để hai màn liền mạch. */}
       <Image
         source={require('@/assets/nen/ngan-ha.jpg')}
-        style={{ position: 'absolute', top: 0, width: RONG, height: CAO * 0.62 }}
+        style={{ position: 'absolute', top: 0, width: '100%', height: CAO * 0.62 }}
         contentFit="cover"
         contentPosition="top"
       />

@@ -34,7 +34,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
 
-const { width: RONG, height: CAO } = Dimensions.get('window');
+import { rongKhung } from '@/constants/khung-web';
+
+const { height: CAO } = Dimensions.get('window');
+/** Lá rơi trong CỘT, không phải cả cửa sổ — xem khung-web.ts. */
+const RONG = rongKhung();
 
 const SO_LA = 12;
 

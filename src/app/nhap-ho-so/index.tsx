@@ -10,7 +10,7 @@ import { Logo } from '@/components/logo';
 import { Nut } from '@/components/nen';
 import { CHU, MAU } from '@/constants/giao-dien';
 
-const { width: RONG, height: CAO } = Dimensions.get('window');
+const { height: CAO } = Dimensions.get('window');
 
 /**
  * Màn chào, và là màn ĐẦU TIÊN người duyệt app của Apple nhìn thấy sau khi bấm
@@ -29,7 +29,7 @@ export default function ChaoMung() {
       {/* Dải ngân hà phủ hai phần ba trên, phần dưới tan vào nền để chữ đọc được. */}
       <Image
         source={require('@/assets/nen/ngan-ha.jpg')}
-        style={{ position: 'absolute', top: 0, width: RONG, height: CAO * 0.72 }}
+        style={{ position: 'absolute', top: 0, width: '100%', height: CAO * 0.72 }}
         contentFit="cover"
         contentPosition="top"
       />

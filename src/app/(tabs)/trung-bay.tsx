@@ -39,6 +39,8 @@ import { CHU, MAU } from '@/constants/giao-dien';
 import { useQuanTam } from '@/lib/quan-tam';
 import { anhSanPham, useSanPham, type SanPham } from '@/lib/san-pham';
 
+import { rongKhung } from '@/constants/khung-web';
+
 export default function TrungBay() {
   const { dong, loi, dangTai } = useSanPham();
   const quanTam = useQuanTam();
@@ -174,7 +176,9 @@ const CHO_TU_CHAY = 4000;
  * là đúng loại chuyển động mà mục đó sinh ra để tắt.
  */
 function DaiNoiBat({ ds }: { ds: SanPham[] }) {
-  const { width } = useWindowDimensions();
+  const { width: rongCuaSo } = useWindowDimensions();
+  // Thẻ rộng theo CỘT chứ không theo cửa sổ — xem khung-web.ts.
+  const width = rongKhung(rongCuaSo);
   const rong = Math.max(240, width - LE_MAN * 2);
   const buoc = rong + KHE;
   const cuon = useRef<ScrollView>(null);
