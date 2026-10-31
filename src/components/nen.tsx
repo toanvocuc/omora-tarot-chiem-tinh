@@ -24,6 +24,7 @@ export function ManHinh({
   tieuDe,
   phu,
   sauHoaVan,
+  canhGiua,
   quayLai,
   nenPhu,
   onLamMoi,
@@ -43,6 +44,8 @@ export function ManHinh({
    * Máy có tai thỏ thì lề trên đã đủ sâu nên trừ bớt `le.top`.
    */
   sauHoaVan?: number;
+  /** Căn giữa tiêu đề và dòng phụ. Mặc định căn trái như mọi màn khác. */
+  canhGiua?: boolean;
   quayLai?: boolean;
   /** Lớp ảnh nền đặt dưới nội dung, ví dụ trời sao hay khung hoa văn. */
   nenPhu?: React.ReactNode;
@@ -98,12 +101,16 @@ export function ManHinh({
             </View>
           ) : null}
           {tieuDe ? (
-            <Text style={{ fontFamily: CHU.hoaDam, fontSize: 38, lineHeight: 44 }} className="text-chu-chinh">
+            <Text
+              style={{ fontFamily: CHU.hoaDam, fontSize: 38, lineHeight: 44 }}
+              className={`text-chu-chinh${canhGiua ? ' text-center' : ''}`}>
               {tieuDe}
             </Text>
           ) : null}
           {phu ? (
-            <Text style={{ fontFamily: CHU.than }} className="mt-1 text-sm leading-5 text-chu-phu">
+            <Text
+              style={{ fontFamily: CHU.than }}
+              className={`mt-1 text-sm leading-5 text-chu-phu${canhGiua ? ' text-center' : ''}`}>
               {phu}
             </Text>
           ) : null}

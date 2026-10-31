@@ -42,7 +42,8 @@ export default function MoDau() {
       tieuDe="Lá bài hôm nay"
       phu={ngayChuHomNay()}
       nenPhu={<NenKhungVan />}
-      sauHoaVan={SAU_HOA_VAN.van}>
+      sauHoaVan={SAU_HOA_VAN.van}
+      canhGiua>
       {/* Khối mời đặt tư vấn tắt ở đây: danh sách dưới đã có thẻ "Hỏi chuyên
           gia", bật lên là nhắc hai lần trong một màn. */}
       <LaBaiHomNay manHinh="mo-dau" />

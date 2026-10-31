@@ -79,13 +79,24 @@ export const SAU_HOA_VAN = { van: 61, so: 56, cung: 76 } as const;
  *
  * `mo` hạ độ đậm của ảnh xuống. Hai khung số và khung cung có hoa văn ăn khá sâu
  * vào trong lề, nội dung chạy đè lên là rối mắt, nên chúng chạy mờ hơn khung Tarot.
+ *
+ * `fill` chứ KHÔNG `cover`. Ba ảnh này là KHUNG VIỀN, thứ đáng xem nằm đúng ở
+ * bốn góc và bốn mép. Ảnh tỷ lệ 840x1260 (0,67) mà màn điện thoại là 0,46, nên
+ * `cover` khớp chiều cao rồi cắt 70dp mỗi bên — tức cắt mất sạch hai góc trăng
+ * phía trên và hai góc mặt trời phía dưới, chỉ còn trơ lại đường viền trong.
+ * Đó là lý do khung trông nhạt nhoà chứ không phải do màu.
+ *
+ * `fill` ép cả ảnh vừa khít màn: được đủ bốn góc, đổi lại ảnh bị bóp ngang
+ * khoảng 30%. Với một khung viền đối xứng thì không ai nhận ra, còn mất góc
+ * thì nhìn ra ngay. `contain` thì giữ tỷ lệ nhưng chừa hai dải trống trên dưới,
+ * hỏng hẳn ý đồ phủ kín màn.
  */
 function NenKhung({ nguon, mo = 1 }: { nguon: number; mo?: number }) {
   return (
     <Image
       source={nguon}
       style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: mo }}
-      contentFit="cover"
+      contentFit="fill"
       pointerEvents="none"
     />
   );

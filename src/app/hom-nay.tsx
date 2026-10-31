@@ -19,7 +19,8 @@ export default function HomNay() {
       tieuDe="Lá bài hôm nay"
       phu={ngayChuHomNay()}
       nenPhu={<NenKhungVan />}
-      sauHoaVan={SAU_HOA_VAN.van}>
+      sauHoaVan={SAU_HOA_VAN.van}
+      canhGiua>
       <LaBaiHomNay manHinh="hom-nay" hoiChuyenGia />
       <LuuYThamKhao />
     </ManHinh>
