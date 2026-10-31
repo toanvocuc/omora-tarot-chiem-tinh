@@ -23,6 +23,7 @@ import { CAO_THANH_TAB, CHU, KHOI_CHUYEN, MAU, NEN_CHUYEN } from '@/constants/gi
 export function ManHinh({
   tieuDe,
   phu,
+  sauHoaVan,
   quayLai,
   nenPhu,
   onLamMoi,
@@ -32,6 +33,16 @@ export function ManHinh({
 }: {
   tieuDe?: string;
   phu?: string;
+  /**
+   * Dải hoa văn ở mép trên của `nenPhu` ăn sâu xuống bao nhiêu dp.
+   *
+   * Truyền vào thì nội dung bắt đầu ngay DƯỚI dải đó. Thiếu nó thì tiêu đề
+   * nằm lọt trong hoa văn: chữ vàng trên nét vàng, đọc rất mệt. Lấy số ở
+   * `SAU_HOA_VAN` trong `components/nen-anh`, đừng gõ tay.
+   *
+   * Máy có tai thỏ thì lề trên đã đủ sâu nên trừ bớt `le.top`.
+   */
+  sauHoaVan?: number;
   quayLai?: boolean;
   /** Lớp ảnh nền đặt dưới nội dung, ví dụ trời sao hay khung hoa văn. */
   nenPhu?: React.ReactNode;
@@ -64,8 +75,11 @@ export function ManHinh({
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <ScrollView
           ref={cuonRef}
-          contentContainerClassName="px-5 pt-3"
-          contentContainerStyle={{ paddingBottom: CAO_THANH_TAB + 16 + le.bottom }}
+          contentContainerClassName="px-5"
+          contentContainerStyle={{
+            paddingTop: sauHoaVan ? Math.max(12, sauHoaVan + 8 - le.top) : 12,
+            paddingBottom: CAO_THANH_TAB + 16 + le.bottom,
+          }}
           keyboardShouldPersistTaps="handled"
           refreshControl={
             onLamMoi ? (

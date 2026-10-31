@@ -4,7 +4,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { HoiChuyenGia } from '@/components/hoi-chuyen-gia';
 import { ChuThan, DangTai, Khoi, LuuYThamKhao, ManHinh, Nhan, Trong, VanNgan } from '@/components/nen';
-import { NenKhungSo } from '@/components/nen-anh';
+import { NenKhungSo, SAU_HOA_VAN } from '@/components/nen-anh';
 import { OVuongSinh } from '@/components/o-vuong-sinh';
 import { VongSo } from '@/components/vong-so';
 import { CHU, MAU } from '@/constants/giao-dien';
@@ -79,7 +79,7 @@ export default function ThanSo() {
     muiTen.dong?.find((m) => m.cac_so === cacSo && m.loai === loai);
 
   return (
-    <ManHinh quayLai nenPhu={<NenKhungSo />}>
+    <ManHinh quayLai nenPhu={<NenKhungSo />} sauHoaVan={SAU_HOA_VAN.so}>
       <Text
         style={{ fontFamily: CHU.hoaDam, fontSize: 40, lineHeight: 46, color: MAU.vang }}
         className="text-center">

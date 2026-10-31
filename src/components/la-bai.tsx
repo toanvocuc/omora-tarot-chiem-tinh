@@ -97,34 +97,16 @@ export function LaBai({
   daRut,
   rong = 180,
   nhan,
-  haoQuang,
 }: {
   daRut: LaDaRut;
   rong?: number;
   nhan?: boolean;
-  /** Quầng sáng phía sau, dùng cho lá chính của màn hình. */
-  haoQuang?: boolean;
 }) {
   const cao = rong / TY_LE_LA_BAI;
   const nguon = ANH[daRut.la.ma];
 
   return (
     <View style={{ width: rong }} className="items-center">
-      {haoQuang ? (
-        <LinearGradient
-          pointerEvents="none"
-          colors={['transparent', MAU.vangRatMo, 'transparent']}
-          locations={[0, 0.5, 1]}
-          style={{
-            position: 'absolute',
-            width: rong * 1.5,
-            height: cao * 1.12,
-            top: -cao * 0.06,
-            borderRadius: rong * 0.75,
-          }}
-        />
-      ) : null}
-
       <View
         style={{
           width: rong,

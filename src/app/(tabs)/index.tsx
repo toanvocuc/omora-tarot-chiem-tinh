@@ -23,7 +23,7 @@ import { Pressable, Text, View } from 'react-native';
 import { BieuTuongCung } from '@/components/bieu-tuong-cung';
 import { LaBaiHomNay, ngayChuHomNay } from '@/components/la-bai-hom-nay';
 import { LuuYThamKhao, ManHinh, Nhan, VanNgan } from '@/components/nen';
-import { NenKhungVan } from '@/components/nen-anh';
+import { NenKhungVan, SAU_HOA_VAN } from '@/components/nen-anh';
 import { CHU, MAU } from '@/constants/giao-dien';
 import { napTuHoSo } from '@/lib/ban-nhap';
 import { tachNgay, useHoSo } from '@/lib/ho-so';
@@ -38,7 +38,11 @@ export default function MoDau() {
   const so = ns ? soChuDao(ns.ngay, ns.thang, ns.nam) : null;
 
   return (
-    <ManHinh tieuDe="Lá bài hôm nay" phu={ngayChuHomNay()} nenPhu={<NenKhungVan />}>
+    <ManHinh
+      tieuDe="Lá bài hôm nay"
+      phu={ngayChuHomNay()}
+      nenPhu={<NenKhungVan />}
+      sauHoaVan={SAU_HOA_VAN.van}>
       {/* Khối mời đặt tư vấn tắt ở đây: danh sách dưới đã có thẻ "Hỏi chuyên
           gia", bật lên là nhắc hai lần trong một màn. */}
       <LaBaiHomNay manHinh="mo-dau" />

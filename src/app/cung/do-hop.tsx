@@ -3,7 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { HoiChuyenGia } from '@/components/hoi-chuyen-gia';
 import { DangTai, Khoi, LuuYThamKhao, ManHinh, Nhan, Trong } from '@/components/nen';
-import { NenKhungCung } from '@/components/nen-anh';
+import { NenKhungCung, SAU_HOA_VAN } from '@/components/nen-anh';
 import { CHU, MAU } from '@/constants/giao-dien';
 import { tachNgay, useHoSo } from '@/lib/ho-so';
 import { useDoHop } from '@/lib/kho-noi-dung';
@@ -33,7 +33,7 @@ export default function DoHop() {
   const diem = binh?.diem ?? diemHop(a, b);
 
   return (
-    <ManHinh quayLai nenPhu={<NenKhungCung />} tieuDe="Độ hợp" phu="Chọn hai cung để xem hai người hợp nhau tới đâu.">
+    <ManHinh quayLai nenPhu={<NenKhungCung />} sauHoaVan={SAU_HOA_VAN.cung} tieuDe="Độ hợp" phu="Chọn hai cung để xem hai người hợp nhau tới đâu.">
       <ChonCung nhan="Cung của bạn" gia={a} dat={setA} />
       <View className="mt-5">
         <ChonCung nhan="Cung của người ấy" gia={b} dat={setB} />

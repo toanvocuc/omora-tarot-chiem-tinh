@@ -10,11 +10,16 @@
 
 import { LaBaiHomNay, ngayChuHomNay } from '@/components/la-bai-hom-nay';
 import { LuuYThamKhao, ManHinh } from '@/components/nen';
-import { NenKhungVan } from '@/components/nen-anh';
+import { NenKhungVan, SAU_HOA_VAN } from '@/components/nen-anh';
 
 export default function HomNay() {
   return (
-    <ManHinh quayLai tieuDe="Lá bài hôm nay" phu={ngayChuHomNay()} nenPhu={<NenKhungVan />}>
+    <ManHinh
+      quayLai
+      tieuDe="Lá bài hôm nay"
+      phu={ngayChuHomNay()}
+      nenPhu={<NenKhungVan />}
+      sauHoaVan={SAU_HOA_VAN.van}>
       <LaBaiHomNay manHinh="hom-nay" hoiChuyenGia />
       <LuuYThamKhao />
     </ManHinh>

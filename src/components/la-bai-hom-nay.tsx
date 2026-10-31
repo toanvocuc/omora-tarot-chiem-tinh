@@ -107,7 +107,7 @@ export function LaBaiHomNay({
       {la ? (
         <View>
           <View className="items-center">
-            <LaBai daRut={la} rong={210} haoQuang />
+            <LaBai daRut={la} rong={210} />
           </View>
 
           <View className="mt-6">
