@@ -80,8 +80,15 @@ export default function DangNhap() {
         <View className="px-8 pb-6 pt-9">
           <View className="gap-3">
             {/* Apple đặt trước trên iOS: quy định của họ là nút này phải nổi
-                không kém bất kỳ cách đăng nhập nào khác. */}
-            {Platform.OS === 'ios' ? (
+                không kém bất kỳ cách đăng nhập nào khác.
+
+                Trên web cũng hiện: luồng OAuth ở đây đi qua trình duyệt chứ không
+                dùng SDK Apple gốc, nên cùng một đoạn mã chạy được cả hai nơi.
+
+                Riêng Android thì ẨN — user chốt ngày 2026-11-01. Play không đòi hỏi
+                gì như điều 4.8 của Apple, mà người dùng Android gần như không ai có
+                tài khoản Apple để bấm. */}
+            {Platform.OS !== 'android' ? (
               <NutDangNhap
                 hang="apple"
                 nhan="Đăng nhập bằng Apple"

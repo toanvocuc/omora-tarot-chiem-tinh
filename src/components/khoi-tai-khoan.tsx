@@ -234,8 +234,12 @@ export function KhoiTaiKhoan({ xongThi }: { xongThi: () => void }) {
 
       <View className="mt-5 gap-3">
         {/* Trên iOS, điều 4.8 của Apple bắt buộc có Sign in with Apple khi đã
-            có đăng nhập bên thứ ba khác. Trên Android thì thừa. */}
-        {Platform.OS === 'ios' ? (
+            có đăng nhập bên thứ ba khác. Trên Android thì thừa.
+
+            Web hiện theo — để ai đăng nhập Apple được thì cũng gắn Apple vào hồ
+            sơ ẩn danh được. Hai nút này phải đi cùng nhau: bật một bỏ một là
+            khách đăng nhập Apple xong mất đường lưu hồ sơ. */}
+        {Platform.OS !== 'android' ? (
           <NutDangNhap
             hang="apple"
             nhan="Đăng nhập bằng Apple"
