@@ -22,7 +22,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { BieuTuongCung } from '@/components/bieu-tuong-cung';
 import { LaBaiHomNay, ngayChuHomNay } from '@/components/la-bai-hom-nay';
-import { LuuYThamKhao, ManHinh, Nhan, VanNgan } from '@/components/nen';
+import { Khoi, LuuYThamKhao, ManHinh, Nhan, VanNgan } from '@/components/nen';
 import { NenKhungVan, SAU_HOA_VAN } from '@/components/nen-anh';
 import { CHU, MAU } from '@/constants/giao-dien';
 import { napTuHoSo } from '@/lib/ban-nhap';
@@ -162,17 +162,29 @@ function HuyHieu({ ma, ten }: { ma: MaCung; ten: string }) {
   );
 }
 
+/**
+ * Thẻ dẫn sang một mục của màn Khám phá.
+ *
+ * Mượn nguyên bề mặt của `Khoi` — chuyển sắc chéo `KHOI_CHUYEN` cộng viền bo
+ * góc — thay vì một mảng `bg-nen-nhat` phẳng. Ngôn ngữ ấy đã dùng khắp app
+ * rồi, mấy thẻ ở đây chỉ là chưa theo. Đừng đẻ thêm màu mới ở chỗ này.
+ *
+ * Viền vàng mờ chứ không viền xanh: cả màn nằm trong khung hoa văn vàng, viền
+ * xanh làm thẻ tách rời khỏi khung.
+ */
 function The({ nhan, ten, mo, onPress }: { nhan: string; ten: string; mo: string; onPress: () => void }) {
   return (
-    <Pressable
-      onPress={onPress}
-      className="flex-row items-center justify-between rounded-2xl bg-nen-nhat p-5 active:opacity-70">
-      <View className="flex-1 pr-3">
-        <Nhan>{nhan}</Nhan>
-        {ten ? <Text style={{ fontFamily: CHU.thanDam }} className="text-lg text-chu-chinh">{ten}</Text> : null}
-        <Text style={{ fontFamily: CHU.than }} className="mt-1 text-sm leading-5 text-chu-phu">{mo}</Text>
-      </View>
-      <Text style={{ fontFamily: CHU.than }} className="text-lg text-vang">›</Text>
+    <Pressable onPress={onPress} className="active:opacity-70">
+      <Khoi vien>
+        <View className="flex-row items-center justify-between">
+          <View className="flex-1 pr-3">
+            <Nhan>{nhan}</Nhan>
+            {ten ? <Text style={{ fontFamily: CHU.thanDam }} className="text-lg text-chu-chinh">{ten}</Text> : null}
+            <Text style={{ fontFamily: CHU.than }} className="mt-1 text-sm leading-5 text-chu-phu">{mo}</Text>
+          </View>
+          <Text style={{ fontFamily: CHU.than }} className="text-lg text-vang">›</Text>
+        </View>
+      </Khoi>
     </Pressable>
   );
 }
