@@ -18,7 +18,7 @@ import { Pressable, Text, View } from 'react-native';
 import { HoiChuyenGia } from '@/components/hoi-chuyen-gia';
 import { LaBai } from '@/components/la-bai';
 import { ChuThan, DangTai, Khoi, Nhan, Nut, Trong, VanNgan } from '@/components/nen';
-import { CHU } from '@/constants/giao-dien';
+import { CHU, MAU, TY_LE_LA_BAI } from '@/constants/giao-dien';
 import { tachNgay, useHoSo } from '@/lib/ho-so';
 import { useBoBai } from '@/lib/kho-noi-dung';
 import { datPhien } from '@/lib/phien-rut';
@@ -29,8 +29,19 @@ import { cungTheoNgay, timCung } from '@/lib/zodiac';
 
 const THU = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
 
-/** Chiều cao dải thu gọn. Lá rộng 58 ÷ TY_LE_LA_BAI ≈ 102, cộng lề trên dưới. */
-const CAO_GON = 134;
+/**
+ * Cỡ dải thu gọn.
+ *
+ * Chiều cao tính ra từ lá bài chứ không gõ sẵn một con số: lá giữ đúng tỷ lệ
+ * 57x100 của bộ Rider-Waite, nên đổi bề rộng là chiều cao tự theo. Gõ cứng thì
+ * sửa một chỗ quên chỗ kia, lá lòi ra ngoài hoặc dải thừa một dải trống.
+ *
+ * 48 là cỡ nhỏ nhất mà mặt lá còn nhận ra được hình. Cộng đệm trên dưới ra
+ * đúng 104 — vừa trần của khoảng 90–104 đã chốt.
+ */
+const RONG_LA = 48;
+const DEM = 10;
+const CAO_GON = Math.round(RONG_LA / TY_LE_LA_BAI) + DEM * 2;
 
 /** "Thứ ba, ngày 28 tháng 10" — dùng làm dòng phụ dưới tiêu đề. */
 export function ngayChuHomNay(): string {
@@ -216,25 +227,35 @@ export function LaBaiHomNayGon() {
   return (
     <Pressable
       onPress={() => router.push('/hom-nay')}
-      style={{ height: CAO_GON }}
-      className="flex-row items-center rounded-2xl bg-nen-nhat px-4 active:opacity-70">
-      <LaBai daRut={la} rong={58} hienNguoc={false} />
-      <View className="ml-4 flex-1">
-        <Nhan>Lá bài hôm nay</Nhan>
+      style={{ height: CAO_GON, paddingHorizontal: DEM + 2, borderColor: MAU.vangMo }}
+      className="flex-row items-center rounded-2xl border bg-nen-nhat active:opacity-60">
+      <LaBai daRut={la} rong={RONG_LA} hienNguoc={false} bongNhe />
+
+      <View style={{ marginLeft: 12 }} className="flex-1">
+        {/* Nhãn mục KHÔNG dùng `Nhan` dùng chung: nó mang sẵn lề dưới 8, mà ở
+            đây ba dòng phải xếp sát nhau mới vừa 104. */}
         <Text
-          style={{ fontFamily: CHU.thanDam, fontSize: 17, lineHeight: 23 }}
-          className="text-chu-chinh">
+          style={{ fontFamily: CHU.thanDam, letterSpacing: 1.4 }}
+          className="text-[10px] uppercase text-vang">
+          Lá bài hôm nay
+        </Text>
+        <Text
+          style={{ fontFamily: CHU.thanDam, fontSize: 17, lineHeight: 22 }}
+          numberOfLines={1}
+          className="mt-1 text-chu-chinh">
           {la.la.tenEn}
           {la.nguoc ? ' (ngược)' : ''}
         </Text>
+        {/* Một dòng, cắt bằng ba chấm. Hai dòng là dải cao thêm 16 và vỡ mốc. */}
         <Text
-          style={{ fontFamily: CHU.than }}
+          style={{ fontFamily: CHU.than, fontSize: 12, lineHeight: 17 }}
           numberOfLines={1}
-          className="mt-0.5 text-xs text-chu-phu">
+          className="mt-0.5 text-chu-phu">
           {la.la.tuKhoa}
         </Text>
       </View>
-      <Text style={{ fontFamily: CHU.than }} className="ml-2 text-lg text-vang">
+
+      <Text style={{ fontFamily: CHU.than }} className="ml-2 text-base text-vang">
         ›
       </Text>
     </Pressable>

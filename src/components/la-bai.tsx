@@ -98,6 +98,7 @@ export function LaBai({
   rong = 180,
   nhan,
   hienNguoc = true,
+  bongNhe = false,
 }: {
   daRut: LaDaRut;
   rong?: number;
@@ -107,6 +108,15 @@ export function LaBai({
    * nên ở bề rộng 58px nó rộng tới ~45px, che gần kín mặt lá.
    */
   hienNguoc?: boolean;
+  /**
+   * Bóng đổ nhẹ và bo góc nhỏ, cho lá vẽ ở cỡ thumbnail.
+   *
+   * Bóng mặc định (mờ 0.5, toả 18) được chỉnh cho lá cỡ 180–210 ở giữa màn.
+   * Bưng nguyên sang lá rộng 48 thì bóng loang rộng gần bằng chính lá, nhìn
+   * như vệt bẩn. Bo góc cũng vậy: 12 trên bề ngang 48 là một phần tư, lá bài
+   * hoá viên thuốc.
+   */
+  bongNhe?: boolean;
 }) {
   const cao = rong / TY_LE_LA_BAI;
   const nguon = ANH[daRut.la.ma];
@@ -118,13 +128,14 @@ export function LaBai({
           width: rong,
           height: cao,
           borderColor: MAU.vangMo,
+          borderRadius: bongNhe ? 6 : 12,
           shadowColor: '#000',
-          shadowOpacity: 0.5,
-          shadowRadius: 18,
-          shadowOffset: { width: 0, height: 10 },
-          elevation: 10,
+          shadowOpacity: bongNhe ? 0.3 : 0.5,
+          shadowRadius: bongNhe ? 6 : 18,
+          shadowOffset: { width: 0, height: bongNhe ? 3 : 10 },
+          elevation: bongNhe ? 4 : 10,
         }}
-        className="overflow-hidden rounded-xl border bg-nen-nhat-hon">
+        className="overflow-hidden border bg-nen-nhat-hon">
         {nguon ? (
           <Image
             source={nguon}
