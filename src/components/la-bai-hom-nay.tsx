@@ -29,6 +29,9 @@ import { cungTheoNgay, timCung } from '@/lib/zodiac';
 
 const THU = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
 
+/** Chiều cao dải thu gọn. Lá rộng 58 ÷ TY_LE_LA_BAI ≈ 102, cộng lề trên dưới. */
+const CAO_GON = 134;
+
 /** "Thứ ba, ngày 28 tháng 10" — dùng làm dòng phụ dưới tiêu đề. */
 export function ngayChuHomNay(): string {
   const d = new Date();
@@ -170,5 +173,70 @@ export function LaBaiHomNay({
         </View>
       ) : null}
     </View>
+  );
+}
+
+/**
+ * Bản THU GỌN của lá bài hôm nay — một dải bấm được, dẫn sang `/hom-nay`.
+ *
+ * Vì sao có nó: màn Khám phá trước đây bày nguyên khối lá bài đầy đủ ở trên
+ * cùng. Đo trên khung 412x915 thì khối đó chiếm 0→1162px, và thẻ Khám phá đầu
+ * tiên rơi xuống y=1630 trong vùng cuộn cao 845px — khách phải cuộn gần hai
+ * màn hình mới thấy mục nào để bấm. Dải này còn khoảng 134px.
+ *
+ * KHÔNG ghi sự kiện `xem_ket_qua` ở đây. Khách mới thấy cái tên lá, chưa đọc
+ * ý nghĩa hay lời khuyên. Ghi ở cả hai chỗ là thổi phồng số liệu; bản đầy đủ
+ * bên `/hom-nay` tự ghi lấy khi khách bấm sang.
+ *
+ * Phần nạp dữ liệu ở đây cố ý viết riêng và ngắn hơn bản đầy đủ: dải này
+ * không có khung báo lỗi, không có nút thử lại. Hỏng thì nó biến mất chứ
+ * không bày một dòng chết ở đầu màn.
+ */
+export function LaBaiHomNayGon() {
+  const { boBai, dangTai } = useBoBai();
+  const [la, setLa] = useState<LaDaRut | null>(null);
+
+  useEffect(() => {
+    if (!boBai?.length) return;
+    let con = true;
+    maNguoiDung()
+      .then((ma) => {
+        if (con && ma) setLa(laHomNay(boBai, ma));
+      })
+      .catch(() => {});
+    return () => {
+      con = false;
+    };
+  }, [boBai]);
+
+  // Giữ chỗ trong lúc còn đang tải, để mấy thẻ bên dưới không nhảy một cái khi
+  // lá hiện ra. Tải hỏng thì trả về rỗng hẳn — thà thiếu còn hơn một dải chết.
+  if (!la) return dangTai ? <View style={{ height: CAO_GON }} /> : null;
+
+  return (
+    <Pressable
+      onPress={() => router.push('/hom-nay')}
+      style={{ height: CAO_GON }}
+      className="flex-row items-center rounded-2xl bg-nen-nhat px-4 active:opacity-70">
+      <LaBai daRut={la} rong={58} hienNguoc={false} />
+      <View className="ml-4 flex-1">
+        <Nhan>Lá bài hôm nay</Nhan>
+        <Text
+          style={{ fontFamily: CHU.thanDam, fontSize: 17, lineHeight: 23 }}
+          className="text-chu-chinh">
+          {la.la.tenEn}
+          {la.nguoc ? ' (ngược)' : ''}
+        </Text>
+        <Text
+          style={{ fontFamily: CHU.than }}
+          numberOfLines={1}
+          className="mt-0.5 text-xs text-chu-phu">
+          {la.la.tuKhoa}
+        </Text>
+      </View>
+      <Text style={{ fontFamily: CHU.than }} className="ml-2 text-lg text-vang">
+        ›
+      </Text>
+    </Pressable>
   );
 }

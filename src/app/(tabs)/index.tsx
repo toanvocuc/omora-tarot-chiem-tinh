@@ -21,7 +21,7 @@ import { router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
 import { BieuTuongCung } from '@/components/bieu-tuong-cung';
-import { LaBaiHomNay, ngayChuHomNay } from '@/components/la-bai-hom-nay';
+import { LaBaiHomNayGon, ngayChuHomNay } from '@/components/la-bai-hom-nay';
 import { LuuYThamKhao, ManHinh, Nhan, VanNgan } from '@/components/nen';
 import { NenKhungVan, SAU_HOA_VAN } from '@/components/nen-anh';
 import { CHU, MAU } from '@/constants/giao-dien';
@@ -39,25 +39,21 @@ export default function MoDau() {
 
   return (
     <ManHinh
-      tieuDe="Lá bài hôm nay"
+      tieuDe="Khám phá"
       phu={ngayChuHomNay()}
       nenPhu={<NenKhungVan />}
       sauHoaVan={SAU_HOA_VAN.van}
       canhGiua>
-      {/* Khối mời đặt tư vấn tắt ở đây: danh sách dưới đã có thẻ "Hỏi chuyên
-          gia", bật lên là nhắc hai lần trong một màn. */}
-      <LaBaiHomNay manHinh="mo-dau" />
+      {/* Lá bài hôm nay ở đây chỉ là một dải mời bấm, bản đầy đủ nằm ở
+          `/hom-nay`. Trước đây bày nguyên khối đầy đủ ở đây thì thẻ Khám phá đầu
+          tiên rơi xuống y=1630 trong vùng cuộn cao 845 — gần hai màn hình cuộn. */}
+      <LaBaiHomNayGon />
 
       <VanNgan />
 
       <Text
-        style={{ fontFamily: CHU.hoaDam, fontSize: 28, lineHeight: 34 }}
-        className="mt-2 text-chu-chinh">
-        Khám phá
-      </Text>
-      <Text
         style={{ fontFamily: CHU.than, fontSize: 14, lineHeight: 22 }}
-        className="mb-7 mt-1.5 text-chu-phu">
+        className="mb-7 mt-2 text-chu-phu">
         Tarot, chiêm tinh phương Tây và thần số học.
       </Text>
 

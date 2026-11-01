@@ -21,11 +21,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
 
-import { khiDoiTaiKhoan } from '@/lib/doi-tai-khoan';
+import { giuTheoNguoi } from '@/lib/kho-theo-nguoi';
 
 export type MonQuanTam = { ma: string; soLuong: number };
 
 const KHOA = 'omora-quan-tam';
+/** Mã người đang sở hữu danh sách dưới máy này. */
+const KHOA_CHU = 'omora-quan-tam-chu';
 /** Nhiều hơn mức này thì tin nhắn dài quá, Zalo dán vào nhìn rối. */
 export const TOI_DA_MON = 20;
 const TOI_DA_SO_LUONG = 99;
@@ -118,10 +120,21 @@ export function useQuanTam() {
   return dong;
 }
 
-// Máy đổi sang người khác thì danh sách của người cũ không còn là của ai cả.
-khiDoiTaiKhoan(() => {
-  ds = [];
-  daNap = true;
-  AsyncStorage.removeItem(KHOA).catch(() => {});
-  bao();
+// Buộc vào đúng một người. Thẻ phiên hết hạn KHÔNG phải là đổi người — xem
+// đầu `lib/kho-theo-nguoi.ts`.
+giuTheoNguoi(KHOA_CHU, {
+  quen: () => {
+    ds = [];
+    daNap = false;
+    bao();
+  },
+  nap: () => {
+    void nap();
+  },
+  xoa: () => {
+    ds = [];
+    daNap = true;
+    AsyncStorage.removeItem(KHOA).catch(() => {});
+    bao();
+  },
 });

@@ -97,10 +97,16 @@ export function LaBai({
   daRut,
   rong = 180,
   nhan,
+  hienNguoc = true,
 }: {
   daRut: LaDaRut;
   rong?: number;
   nhan?: boolean;
+  /**
+   * Nhãn "Ngược" góc trên. Tắt khi vẽ lá cỡ nhỏ: nhãn có cỡ chữ và lề cố định
+   * nên ở bề rộng 58px nó rộng tới ~45px, che gần kín mặt lá.
+   */
+  hienNguoc?: boolean;
 }) {
   const cao = rong / TY_LE_LA_BAI;
   const nguon = ANH[daRut.la.ma];
@@ -133,7 +139,7 @@ export function LaBai({
           <GiuCho ten={daRut.la.tenEn} rong={rong} />
         )}
 
-        {daRut.nguoc ? (
+        {daRut.nguoc && hienNguoc ? (
           <View className="absolute right-2 top-2 rounded-full bg-vang px-2.5 py-1">
             <Text style={{ fontFamily: CHU.thanDam }} className="text-[10px] text-nen">
               Ngược

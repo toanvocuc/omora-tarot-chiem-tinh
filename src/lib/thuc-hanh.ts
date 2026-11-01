@@ -26,7 +26,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
 
-import { khiDoiTaiKhoan } from '@/lib/doi-tai-khoan';
+import { giuTheoNguoi } from '@/lib/kho-theo-nguoi';
 import {
   MOT_LAN_TUOI,
   nangLuongConLai,
@@ -79,6 +79,8 @@ const KHOA = 'omora-thuc-hanh';
  * có thể kéo cả cây về không.
  */
 const KHOA_TUOI = 'omora-da-tuoi';
+/** Mã người đang sở hữu nhật ký dưới máy này. */
+const KHOA_CHU = 'omora-thuc-hanh-chu';
 /** Giữ lại chừng này buổi. Đủ cho một năm thực hành mỗi ngày vài lần. */
 const TOI_DA = 2000;
 
@@ -231,13 +233,34 @@ export function useThucHanh() {
   return dong;
 }
 
-// Máy đổi sang người khác thì nhật ký của người cũ không còn là của ai cả.
-khiDoiTaiKhoan(() => {
-  ds = [];
-  daTuoi = 0;
-  daNap = true;
-  AsyncStorage.removeItem(KHOA).catch(() => {});
-  AsyncStorage.removeItem(KHOA_TUOI).catch(() => {});
-  bao();
-  baoTuoi();
+/**
+ * Nhật ký và cây buộc vào đúng một người.
+ *
+ * Trước đây chỗ này dùng `khiDoiTaiKhoan` và xoá hẳn hai ô nhớ. Hậu quả: thẻ
+ * phiên hết hạn cũng bị hiểu là đổi người, và cả nhật ký lẫn cây bay sạch.
+ * Đọc đầu `lib/kho-theo-nguoi.ts` để biết đầy đủ.
+ */
+giuTheoNguoi(KHOA_CHU, {
+  quen: () => {
+    // Không còn ai đăng nhập. Buông bản nhớ tạm để màn hình không còn bày đồ
+    // của người cũ, nhưng để nguyên dưới máy. Đặt lại `daNap` để lần sau còn
+    // nạp lên được.
+    ds = [];
+    daTuoi = 0;
+    daNap = false;
+    bao();
+    baoTuoi();
+  },
+  nap: () => {
+    void nap();
+  },
+  xoa: () => {
+    ds = [];
+    daTuoi = 0;
+    daNap = true;
+    AsyncStorage.removeItem(KHOA).catch(() => {});
+    AsyncStorage.removeItem(KHOA_TUOI).catch(() => {});
+    bao();
+    baoTuoi();
+  },
 });

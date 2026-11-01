@@ -42,6 +42,7 @@ import { XEM_THU } from '@/lib/xem-thu';
 type Quen = (ma: string | null) => void;
 
 const nguoiQuen = new Set<Quen>();
+const nguoiBiet = new Set<Quen>();
 
 /**
  * `undefined` nghĩa là chưa biết ai đang dùng máy.
@@ -53,26 +54,33 @@ const nguoiQuen = new Set<Quen>();
 let maDangDung: string | null | undefined;
 let daNghe = false;
 
+function goi(tap: Set<Quen>, ma: string | null) {
+  tap.forEach((f) => {
+    try {
+      f(ma);
+    } catch (e) {
+      // Một chỗ dọn hỏng thì mấy chỗ còn lại vẫn phải được dọn. Nuốt lỗi ở đây
+      // chứ không để nó chặn cả vòng lặp.
+      console.warn('[doi-tai-khoan]', e);
+    }
+  });
+}
+
 function ngheMotLan() {
   if (daNghe || XEM_THU) return;
   daNghe = true;
   supabase.auth.onAuthStateChange((_, phien) => {
     const ma = phien?.user?.id ?? null;
+    // `nguoiBiet` nghe CẢ lượt đầu, vì chỗ cất xuống máy cần biết ai đang dùng
+    // ngay từ lúc mở app chứ không chỉ lúc đổi người.
+    goi(nguoiBiet, ma);
     if (maDangDung === undefined) {
       maDangDung = ma;
       return;
     }
     if (ma === maDangDung) return;
     maDangDung = ma;
-    nguoiQuen.forEach((f) => {
-      try {
-        f(ma);
-      } catch (e) {
-        // Một chỗ dọn hỏng thì mấy chỗ còn lại vẫn phải được dọn. Nuốt lỗi ở
-        // đây chứ không để nó chặn cả vòng lặp.
-        console.warn('[doi-tai-khoan]', e);
-      }
-    });
+    goi(nguoiQuen, ma);
   });
 }
 
@@ -88,5 +96,21 @@ export function khiDoiTaiKhoan(f: Quen): () => void {
   nguoiQuen.add(f);
   return () => {
     nguoiQuen.delete(f);
+  };
+}
+
+/**
+ * Nghe mã người đang dùng máy — KỂ CẢ lượt báo đầu tiên lúc mở app.
+ *
+ * Khác `khiDoiTaiKhoan` ở chỗ đó. Dữ liệu cất xuống máy cần đóng dấu chủ ngay
+ * từ lần mở đầu: nếu chỉ nghe lúc ĐỔI người thì một máy đã có sẵn nhật ký mà
+ * chưa từng đổi tài khoản sẽ không mang dấu chủ nào, và người kế tiếp đăng
+ * nhập vào sẽ được nhận luôn đống dữ liệu đó.
+ */
+export function khiBietNguoi(f: Quen): () => void {
+  ngheMotLan();
+  nguoiBiet.add(f);
+  return () => {
+    nguoiBiet.delete(f);
   };
 }

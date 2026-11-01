@@ -38,6 +38,7 @@ import { dongBacGia, dungTinNhan, giaKemDonVi, giaTheoSoLuong, phanTramGiam, tie
 import { cauThieu, thieuHoSo } from '../src/lib/ho-so-thieu.ts';
 import { donDuocDon, maDonDuocDon, tachDonGhim } from '../src/lib/don-loc.ts';
 import { docLoi, laKhachTuChoi, laTrungDanhTinh, layMa as layMaTraVe } from '../src/lib/duong-tra-ve.ts';
+import { quyetDinh } from '../src/lib/chu-du-lieu.ts';
 
 let loi = 0;
 function kiem(ten: string, thuc: unknown, mong: unknown) {
@@ -628,6 +629,28 @@ console.log('\n--- phan tram giam gia ---');
   kiem('gia truoc bang gia hien tai', phanTramGiam(280000, 280000), 0);
   kiem('gia truoc THAP hon la du lieu sai', phanTramGiam(280000, 250000), 0);
   kiem('gia truoc bang 0', phanTramGiam(280000, 0), 0);
+}
+
+console.log('\n--- du lieu duoi may buoc theo nguoi ---');
+{
+  const A = 'nguoi-a';
+  const B = 'nguoi-b';
+
+  // Ca da lam hong that (2026-11-01): the phien het han thi Supabase phat
+  // SIGNED_OUT voi phien null. Day KHONG phai doi nguoi; xoa di la mat han
+  // nhat ky thuc hanh va cay cua chinh chu.
+  kiem('het phien thi chi buong bo nho tam', quyetDinh(A, null), 'quen');
+  kiem('chua tung co chu ma cung het phien', quyetDinh(null, null), 'quen');
+
+  // Nguoi cu dang nhap lai sau khi the het han: phai thay lai du lieu.
+  kiem('dung nguoi do dang nhap lai', quyetDinh(A, A), 'giu');
+
+  // May da dung tu truoc ban va nay nen chua dong dau chu. Xoa di la lay
+  // mat nhat ky cua chinh chu.
+  kiem('chua dong dau thi nhan lam chu', quyetDinh(null, A), 'giu');
+
+  // Day moi that su la may sang tay nguoi khac.
+  kiem('nguoi khac dang nhap thi xoa', quyetDinh(A, B), 'xoa');
 }
 
 console.log(loi === 0 ? '\n==> TAT CA DEU DUNG' : `\n==> CO ${loi} CHO SAI`);
