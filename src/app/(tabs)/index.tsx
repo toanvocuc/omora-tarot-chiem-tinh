@@ -49,13 +49,12 @@ export default function MoDau() {
           tiên rơi xuống y=1630 trong vùng cuộn cao 845 — gần hai màn hình cuộn. */}
       <LaBaiHomNayGon />
 
-      {/* Bỏ `VanNgan` ở đây: nó ăn 48 lề trên dưới, mà dải phía trên đã có viền
-          vàng riêng nên không cần thêm một đường kẻ nữa để tách. */}
-      <Text
-        style={{ fontFamily: CHU.than, fontSize: 14, lineHeight: 22 }}
-        className="mb-6 mt-5 text-chu-phu">
-        Tarot, chiêm tinh phương Tây và thần số học.
-      </Text>
+      {/* Giữa dải và phần dưới chỉ còn một khoảng trống.
+          Đã bỏ `VanNgan` (ăn 48 lề trên dưới, mà dải đã có viền riêng để tách) và
+          bỏ dòng "Tarot, chiêm tinh phương Tây và thần số học." — user chốt
+          2026-11-01. Khoảng trống đặt cố định ở đây chứ không gắn vào huy hiệu cung,
+          vì huy hiệu chỉ hiện khi đã có ngày sinh. */}
+      <View className="h-6" />
 
       {ma && cung ? <HuyHieu ma={ma} ten={cung.ten} /> : null}
 

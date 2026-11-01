@@ -19,6 +19,8 @@ export const MAU = {
   vang: '#D4A84B',
   vangSang: '#E8C673',
   vangMo: 'rgba(212,168,75,0.30)',
+  /** Viền vàng thấy được ở cỡ điện thoại. 30% nhìn như không có viền. */
+  vangVua: 'rgba(212,168,75,0.45)',
   vangRatMo: 'rgba(212,168,75,0.10)',
 
   chuChinh: '#EDF1F8',

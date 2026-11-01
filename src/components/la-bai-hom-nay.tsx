@@ -227,8 +227,16 @@ export function LaBaiHomNayGon() {
   return (
     <Pressable
       onPress={() => router.push('/hom-nay')}
-      style={{ height: CAO_GON, paddingHorizontal: DEM + 2, borderColor: MAU.vangMo }}
-      className="flex-row items-center rounded-2xl border bg-nen-nhat active:opacity-60">
+      style={{
+        height: CAO_GON,
+        paddingHorizontal: DEM + 2,
+        // Nền sáng hơn nền thẻ thường và viền đậm hơn: đây là nút bấm duy
+        // nhất nằm trên nền đen trống, không có gì quanh để tựa. Để nguyên
+        // nenNhat + viền 30% thì user nhìn không ra là có viền.
+        backgroundColor: MAU.nenNhatHon,
+        borderColor: MAU.vangVua,
+      }}
+      className="flex-row items-center rounded-2xl border active:opacity-60">
       <LaBai daRut={la} rong={RONG_LA} hienNguoc={false} bongNhe />
 
       <View style={{ marginLeft: 12 }} className="flex-1">
