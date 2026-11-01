@@ -10,6 +10,7 @@
  */
 
 import { Image } from 'expo-image';
+import { Directory, File, Paths } from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
@@ -51,32 +52,57 @@ export default function ManVe() {
   }
 
   /**
+   * Giữ lại tấm ảnh ở chỗ bền.
+   *
+   * `launchImageLibraryAsync` trả về một bản chép nằm trong thư mục ĐỆM của
+   * app. Đệm là thứ máy được phép xoá bất cứ lúc nào — hết chỗ trống, hoặc
+   * khách bấm "Xoá bộ nhớ đệm" trong cài đặt. Nhật ký thì cất nguyên đường dẫn
+   * đó xuống AsyncStorage, nên vài tuần sau mở lại buổi cũ là ô ảnh trống trơn
+   * mà không hiểu vì sao.
+   *
+   * Chép sang thư mục tài liệu thì máy không đụng vào nữa. Chép hỏng thì vẫn
+   * trả về đường dẫn cũ: ảnh tạm còn hơn không có ảnh.
+   */
+  async function giuAnh(nguonUri: string): Promise<string> {
+    try {
+      const thuMuc = new Directory(Paths.document, 'anh-thuc-hanh');
+      if (!thuMuc.exists) thuMuc.create({ intermediates: true, idempotent: true });
+      const nguon = new File(nguonUri);
+      const dich = new File(thuMuc, `${Date.now()}.${nguon.extension || 'jpg'}`);
+      await nguon.copy(dich);
+      return dich.uri;
+    } catch {
+      return nguonUri;
+    }
+  }
+
+  /**
    * Chọn một tấm từ thư viện máy.
    *
-   * Chỉ xin quyền ĐÚNG LÚC bấm, không xin lúc mở màn: người chưa định đính ảnh
-   * mà đã bị hỏi quyền thì phần lớn bấm từ chối, rồi lần sau muốn dùng lại phải
-   * vào cài đặt máy mở tay.
+   * KHÔNG xin quyền ở đây. Bộ chọn ảnh của hệ thống (`PickVisualMedia`, máy cũ
+   * thì `ACTION_GET_CONTENT`) không đòi quyền nào — khách tự chọn tấm nào thì
+   * app chỉ thấy đúng tấm đó. Bản cũ chặn trước bằng
+   * `requestMediaLibraryPermissionsAsync`, và trên Android 12 trở xuống câu đó
+   * LUÔN trả về bị từ chối, vì `READ_EXTERNAL_STORAGE` nằm trong
+   * `blockedPermissions` của app.json. Kết quả: nút đính ảnh chết hẳn trên máy
+   * Android cũ, báo "chưa mở quyền" mà vào cài đặt cũng không có gì để mở.
+   *
+   * Quyền đó bị chặn CÓ CHỦ Ý — xem commit 00649d9, Google đã một lần chặn bản
+   * nộp chợ ở mục "Photo and video permissions". Nên đường đúng là bỏ câu hỏi
+   * quyền, không phải mở lại quyền.
    *
    * `mediaTypes: ['images']` để khỏi lọt video — một đoạn phim nhét vào nhật ký
    * thì nặng và cũng không hiện lại được ở đây.
    */
   async function chonAnh() {
     try {
-      const quyen = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!quyen.granted) {
-        hoi(
-          'Chưa mở quyền xem ảnh',
-          'Vào phần Cài đặt của máy, mở quyền ảnh cho Omora rồi quay lại.'
-        );
-        return;
-      }
       const ket = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
         quality: 0.7,
         allowsEditing: false,
       });
       if (!ket.canceled && ket.assets[0]) {
-        datAnh(ket.assets[0].uri);
+        datAnh(await giuAnh(ket.assets[0].uri));
         datDaLuu(false);
       }
     } catch {
