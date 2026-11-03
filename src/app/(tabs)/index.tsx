@@ -16,6 +16,8 @@
  * mời điền — chứ không phải cả màn trắng như bản cũ.
  */
 
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
@@ -60,7 +62,8 @@ export default function MoDau() {
 
       <View className="gap-4">
         <The
-          nhan="Tarot"
+          nhan="Tarot"
+          icon={{ bo: 'mci', ma: 'cards-playing-outline' }}
           ten="Rút bài"
           mo="Một lá cho câu hỏi nhanh, hoặc ba lá cho quá khứ hiện tại tương lai"
           onPress={() => router.push('/rut-bai')}
@@ -69,25 +72,29 @@ export default function MoDau() {
         {/* Không nhắc lại tên cung ở đây: huy hiệu ngay phía trên đã nói rồi,
             đọc liền hai lần nghe như máy lặp. */}
         <The
-          nhan="Cung hoàng đạo"
+          nhan="Cung hoàng đạo"
+          icon={ma ? { bo: 'mci', ma: `zodiac-${ma}` } : { bo: 'ion', ma: 'sunny-outline' }}
           ten="Tử vi và tính cách"
           mo={`Hôm nay, tuần này, và ${cung ? cung.ten : 'cung của bạn'} vốn là người thế nào`}
           onPress={() => router.push('/cung')}
         />
         <The
-          nhan="Độ hợp"
+          nhan="Độ hợp"
+          icon={{ bo: 'ion', ma: 'heart-outline' }}
           ten="Bạn và người ấy"
           mo="So hai cung hoàng đạo với nhau"
           onPress={() => router.push('/cung/do-hop')}
         />
         <The
-          nhan="Thần số học"
+          nhan="Thần số học"
+          icon={{ bo: 'ion', ma: 'calculator-outline' }}
           ten={so ? `Số chủ đạo ${so}` : 'Số chủ đạo và số vận mệnh'}
           mo="Số chủ đạo từ ngày sinh và số vận mệnh từ họ tên"
           onPress={() => router.push('/than-so')}
         />
         <The
-          nhan="Hỏi chuyên gia"
+          nhan="Hỏi chuyên gia"
+          icon={{ bo: 'ion', ma: 'chatbubble-ellipses-outline' }}
           ten="Đặt một buổi tư vấn"
           mo="Khi muốn hỏi một câu cụ thể mà app chưa trả lời được"
           onPress={() => router.push('/chuyen-gia')}
@@ -101,7 +108,8 @@ export default function MoDau() {
             đi qua bị ghi đè bằng giá trị rỗng — mất luôn cái tên đã có. */}
         {!ns ? (
           <The
-            nhan="Còn thiếu"
+            nhan="Còn thiếu"
+          icon={{ bo: 'ion', ma: 'calendar-outline' }}
             ten="Thêm ngày sinh"
             mo="Có ngày sinh mới tính được cung hoàng đạo và số chủ đạo của bạn"
             onPress={() => {
@@ -157,11 +165,50 @@ function HuyHieu({ ma, ten }: { ma: MaCung; ten: string }) {
   );
 }
 
-function The({ nhan, ten, mo, onPress }: { nhan: string; ten: string; mo: string; onPress: () => void }) {
+/**
+ * Huy hiệu tròn mang icon, đặt bên trái mỗi thẻ.
+ *
+ * Icon lấy từ `@expo/vector-icons` vốn đã nằm trong dự án — thanh tab dưới dùng
+ * cùng bộ đó. Không thêm phụ thuộc, không thêm ảnh, nên đẩy được bằng OTA.
+ *
+ * Vòng tròn dùng `nenNhatHon` chứ không phải vàng đặc: năm thẻ xếp dọc mà mỗi
+ * thẻ một đốm vàng to thì cả màn thành dây đèn nháy. Vàng để dành cho nét icon.
+ */
+function HuyHieuThe({ ten }: { ten: TenIcon }) {
+  return (
+    <View
+      style={{ width: 44, height: 44, backgroundColor: MAU.nenNhatHon }}
+      className="mr-4 items-center justify-center rounded-full">
+      {ten.bo === 'mci' ? (
+        <MaterialCommunityIcons name={ten.ma as never} size={22} color={MAU.vang} />
+      ) : (
+        <Ionicons name={ten.ma as never} size={21} color={MAU.vang} />
+      )}
+    </View>
+  );
+}
+
+/** Tên icon kèm bộ chứa nó. Hai bộ vì Ionicons không có ký hiệu cung hoàng đạo. */
+type TenIcon = { bo: 'ion' | 'mci'; ma: string };
+
+function The({
+  nhan,
+  ten,
+  mo,
+  icon,
+  onPress,
+}: {
+  nhan: string;
+  ten: string;
+  mo: string;
+  icon: TenIcon;
+  onPress: () => void;
+}) {
   return (
     <Pressable
       onPress={onPress}
       className="flex-row items-center justify-between rounded-2xl bg-nen-nhat p-5 active:opacity-70">
+      <HuyHieuThe ten={icon} />
       <View className="flex-1 pr-3">
         <Nhan>{nhan}</Nhan>
         {ten ? <Text style={{ fontFamily: CHU.thanDam }} className="text-lg text-chu-chinh">{ten}</Text> : null}
