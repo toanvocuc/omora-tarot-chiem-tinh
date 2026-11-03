@@ -17,7 +17,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { KetQuaBuoi, type DongKetQua } from '@/components/ket-qua-buoi';
 import { Khoi, ManHinh, Nhan, Nut } from '@/components/nen';
-import { CHU } from '@/constants/giao-dien';
+import { CHU, MAU } from '@/constants/giao-dien';
 import { chuoiNgay, ghiBuoi, luiNgay, ngayHomNay, useThucHanh } from '@/lib/thuc-hanh';
 
 const DO_DAI = [5, 10, 15, 20, 30];
@@ -84,7 +84,8 @@ function ChonDoDai({ chon }: { chon: (p: number) => void }) {
           <Pressable
             key={p}
             onPress={() => chon(p)}
-            className="min-w-[88px] items-center rounded-2xl bg-nen-nhat px-5 py-4 active:opacity-70">
+            style={{ borderColor: MAU.vien }}
+            className="min-w-[88px] items-center rounded-2xl border bg-nen-nhat px-5 py-4 active:opacity-70">
             <Text style={{ fontFamily: CHU.hoaDam, fontSize: 22 }} className="text-chu-chinh">
               {p}
             </Text>

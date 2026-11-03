@@ -1,12 +1,16 @@
 /** Bộ màu, phông chữ và khoảng cách dùng chung. Đổi ở đây là đổi cả app. */
 
 export const MAU = {
-  // Nền xanh đêm, đi từ đậm dưới lên nhạt trên.
-  nen: '#0B1220',
-  nenGiua: '#0E1728',
-  nenTren: '#131E33',
-  nenNhat: '#141E33',
-  nenNhatHon: '#1B2740',
+  // Nền tím đêm, đi từ đậm dưới lên nhạt trên.
+  //
+  // Trước là xanh hải quân (#0B1220 … #1B2740). Đổi sang tím 2026-11-03 theo
+  // ảnh mẫu user gửi. Giữ nguyên từng nấc độ sáng của bộ cũ, chỉ xoay sắc —
+  // nên mọi chỗ đang dựa vào "nền này đậm hơn nền kia" vẫn đúng thứ tự.
+  nen: '#120E1C',
+  nenGiua: '#161120',
+  nenTren: '#1C1729',
+  nenNhat: '#1E162F',
+  nenNhatHon: '#2A2140',
 
   /**
    * Nền đen cho mấy khung viền vàng.
@@ -14,7 +18,7 @@ export const MAU = {
    * Không dùng đen tuyệt đối: trên nền trời sao, một mảng #000 trông như lỗ
    * thủng chứ không như một tấm thẻ. Lệch xanh một chút thì nó ăn vào nền.
    */
-  nenDen: '#06080D',
+  nenDen: '#08060C',
 
   vang: '#D4A84B',
   vangSang: '#E8C673',
@@ -26,7 +30,7 @@ export const MAU = {
   chuChinh: '#EDF1F8',
   chuPhu: '#9AA8C0',
   chuMo: '#63708A',
-  vien: '#233149',
+  vien: '#322845',
   tot: '#4FBF95',
   canh: '#E08268',
   /** Đỏ cam cho nhãn giảm giá. Đủ nóng để bật khỏi nền xanh đêm mà không chói như đỏ thuần. */
@@ -37,7 +41,7 @@ export const MAU = {
 export const NEN_CHUYEN: readonly [string, string, string] = [MAU.nenTren, MAU.nenGiua, MAU.nen];
 
 /** Nền chuyển sắc cho khối nội dung, nhạt hơn nền một chút. */
-export const KHOI_CHUYEN: readonly [string, string] = ['#18233A', '#111A2C'];
+export const KHOI_CHUYEN: readonly [string, string] = ['#241B38', '#171127'];
 
 export const CHU = {
   /** Phông có chân, dùng cho tiêu đề và tên lá bài. Chỉ dùng ở cỡ lớn. */
@@ -48,6 +52,14 @@ export const CHU = {
   thanVua: 'BeVietnamPro_500Medium',
   thanDam: 'BeVietnamPro_600SemiBold',
 } as const;
+
+/**
+ * Bo góc của thẻ lớn, dùng cho mọi `rounded-2xl`.
+ *
+ * Số này KHÔNG đọc từ đây mà khai trong `tailwind.config.js`; để lại đây để ai
+ * đọc bảng màu còn biết chỗ mà sửa. Hai nơi phải khớp nhau.
+ */
+export const BO_GOC_THE = 20;
 
 /** Tỷ lệ lá bài Rider-Waite thật: 57mm x 100mm. */
 export const TY_LE_LA_BAI = 57 / 100;

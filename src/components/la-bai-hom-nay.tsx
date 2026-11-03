@@ -153,7 +153,8 @@ export function LaBaiHomNay({
           {cung ? (
             <Pressable
               onPress={() => router.push({ pathname: '/cung/chi-tiet', params: { ma: maCung } })}
-              className="mt-4 flex-row items-center justify-between rounded-2xl bg-nen-nhat p-5 active:opacity-70">
+              style={{ borderColor: MAU.vien }}
+              className="mt-4 flex-row items-center justify-between rounded-2xl border bg-nen-nhat p-5 active:opacity-70">
               <View className="flex-1 pr-3">
                 <Nhan>Cung của bạn</Nhan>
                 <Text style={{ fontFamily: CHU.than }} className="text-base text-chu-chinh">

@@ -181,8 +181,13 @@ export default function ManVe() {
           textAlignVertical="top"
           placeholder="Kể một dòng về thứ bạn vừa vẽ, nếu muốn."
           placeholderTextColor={MAU.chuMo}
-          style={{ fontFamily: CHU.than, minHeight: 90, color: MAU.chuChinh }}
-          className="rounded-2xl bg-nen-nhat p-4 text-base leading-6"
+          style={{
+            fontFamily: CHU.than,
+            minHeight: 90,
+            color: MAU.chuChinh,
+            borderColor: MAU.vien,
+          }}
+          className="rounded-2xl border bg-nen-nhat p-4 text-base leading-6"
         />
 
         <Nut nhan={dangSua ? 'Lưu thay đổi' : 'Cất vào nhật ký'} onPress={xong} tat={!coGi} />

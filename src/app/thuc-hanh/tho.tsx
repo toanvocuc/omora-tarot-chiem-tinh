@@ -130,7 +130,8 @@ function ChonNhip({ batDau }: { batDau: (n: NhipTho) => void }) {
         <Pressable
           key={n.ma}
           onPress={() => batDau(n)}
-          className="rounded-2xl bg-nen-nhat p-5 active:opacity-70">
+          style={{ borderColor: MAU.vien }}
+          className="rounded-2xl border bg-nen-nhat p-5 active:opacity-70">
           <Nhan>{`${motVong(n)} giây một vòng`}</Nhan>
           <Text style={{ fontFamily: CHU.thanDam }} className="text-lg text-chu-chinh">
             {n.ten}

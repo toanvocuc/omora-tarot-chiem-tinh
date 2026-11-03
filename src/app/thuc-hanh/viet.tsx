@@ -156,8 +156,13 @@ export default function ManViet() {
               : 'Viết bao nhiêu cũng được. Trang này chỉ mình bạn đọc.'
           }
           placeholderTextColor={MAU.chuMo}
-          style={{ fontFamily: CHU.than, minHeight: 170, color: MAU.chuChinh }}
-          className="rounded-2xl bg-nen-nhat p-4 text-base leading-6"
+          style={{
+            fontFamily: CHU.than,
+            minHeight: 170,
+            color: MAU.chuChinh,
+            borderColor: MAU.vien,
+          }}
+          className="rounded-2xl border bg-nen-nhat p-4 text-base leading-6"
         />
 
         <Nut

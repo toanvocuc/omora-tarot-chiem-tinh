@@ -207,7 +207,8 @@ function The({
   return (
     <Pressable
       onPress={onPress}
-      className="flex-row items-center justify-between rounded-2xl bg-nen-nhat p-5 active:opacity-70">
+      style={{ borderColor: MAU.vien }}
+      className="flex-row items-center justify-between rounded-2xl border bg-nen-nhat p-5 active:opacity-70">
       <HuyHieuThe ten={icon} />
       <View className="flex-1 pr-3">
         <Nhan>{nhan}</Nhan>

@@ -26,7 +26,7 @@ import { Pressable, Text, View } from 'react-native';
 import { BieuDoTuan } from '@/components/bieu-do-tuan';
 import { CayCuaBan } from '@/components/cay-cua-ban';
 import { Khoi, ManHinh, Nhan } from '@/components/nen';
-import { CHU } from '@/constants/giao-dien';
+import { CHU, MAU } from '@/constants/giao-dien';
 import {
   bayNgayQua,
   buoiTrongNgay,
@@ -224,7 +224,8 @@ function The({
   return (
     <Pressable
       onPress={onPress}
-      className="flex-row items-center justify-between rounded-2xl bg-nen-nhat p-5 active:opacity-70">
+      style={{ borderColor: MAU.vien }}
+      className="flex-row items-center justify-between rounded-2xl border bg-nen-nhat p-5 active:opacity-70">
       <View className="flex-1 pr-3">
         <View className="flex-row items-center justify-between">
           <Nhan>{nhan}</Nhan>
