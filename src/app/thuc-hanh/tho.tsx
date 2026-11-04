@@ -144,8 +144,10 @@ function ChonNhip({ batDau }: { batDau: (n: NhipTho) => void }) {
 
       <Khoi>
         <Text style={{ fontFamily: CHU.than }} className="text-sm leading-5 text-chu-phu">
-          Ngồi cho thoải mái, mắt khép hờ, rồi thả hơi thở theo vòng tròn. Thấy
-          chóng mặt thì dừng và thở như thường — không cần cố cho hết vòng.
+          Chọn một tư thế thoải mái, thả lỏng vai và nhẹ nhàng đưa sự chú ý về hơi
+          thở. Không cần cố hít thật sâu hay ép bản thân theo kịp nhịp hướng dẫn.
+          Nếu cảm thấy chóng mặt hoặc khó chịu, hãy dừng lại và trở về nhịp thở
+          tự nhiên.
         </Text>
       </Khoi>
     </View>

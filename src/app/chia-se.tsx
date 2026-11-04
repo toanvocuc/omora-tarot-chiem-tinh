@@ -1,3 +1,4 @@
+import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Platform, Text, View } from 'react-native';
 
@@ -6,12 +7,25 @@ import { DangTai, ManHinh, Nut } from '@/components/nen';
 import { CAO_ANH, RONG_ANH, TY_LE_XEM, TheChiaSe } from '@/components/the-chia-se';
 import { CHU } from '@/constants/giao-dien';
 import { useBoBai } from '@/lib/kho-noi-dung';
-import { layPhien } from '@/lib/phien-rut';
+import { usePhien } from '@/lib/phien-rut';
 import { maNguoiDung } from '@/lib/supabase';
 import { laHomNay, type LaDaRut } from '@/lib/tarot';
 
 export default function ChiaSe() {
-  const phien = layPhien();
+  const { phien } = usePhien();
+  /**
+   * Lá nào trong lần trải đang được chia sẻ.
+   *
+   * Màn kết quả truyền số thứ tự sang. Trước đây chỗ này luôn lấy `cacLa[0]`,
+   * nên trải ba lá thì bấm lá thứ hai hay thứ ba vẫn tải về lá thứ nhất
+   * (người kiểm thử báo 2026-11-04).
+   *
+   * Tham số đường dẫn là chữ và người dùng sửa tay được, nên kẹp lại trong
+   * khoảng hợp lệ thay vì tin.
+   */
+  const thamSo = useLocalSearchParams<{ la?: string }>();
+  const soLa = phien?.cacLa.length ?? 0;
+  const chiSo = Math.min(Math.max(Number(thamSo.la) || 0, 0), Math.max(soLa - 1, 0));
   const theRef = useRef<View>(null);
   /**
    * Bản khổ thật, chỉ dựng trên web và nằm ngoài màn.
@@ -35,7 +49,7 @@ export default function ChiaSe() {
     maNguoiDung().then((ma) => ma && setLaDuPhong(laHomNay(boBai, ma)));
   }, [phien, boBai]);
 
-  const la = phien?.cacLa[0] ?? laDuPhong;
+  const la = phien?.cacLa[chiSo] ?? laDuPhong;
 
   /**
    * Chụp tấm thẻ thành file ảnh, trả về đường dẫn tạm.

@@ -90,9 +90,19 @@ export function daLamHomNay(buoi: BuoiThucHanh[], homNay = ngayHomNay()): boolea
   return buoi.some((b) => b.ngay === homNay);
 }
 
-/** Mấy trang viết và vẽ gần nhất, mới nhất lên đầu. */
+/**
+ * Mấy trang viết và vẽ gần nhất, mới nhất lên đầu.
+ *
+ * Nhận cả mục chỉ chấm tâm trạng mà không viết chữ nào. Trước đây chỗ này đòi
+ * phải có `noiDung`, nên hôm nào chỉ bấm "mệt" rồi cất là mục có được ghi
+ * xuống máy thật nhưng không bao giờ hiện ra — màn Viết báo "Đã cất." mà danh
+ * sách không dài thêm dòng nào (người kiểm thử báo 2026-11-04). Mà chấm một
+ * chạm là xong một mục vốn là chủ ý của màn này, xem đầu `app/thuc-hanh/viet`.
+ */
 export function cacTrang(buoi: BuoiThucHanh[]): BuoiThucHanh[] {
-  return buoi.filter((b) => b.noiDung && (b.loai === 'viet' || b.loai === 've')).reverse();
+  return buoi
+    .filter((b) => (b.noiDung || b.tamTrang) && (b.loai === 'viet' || b.loai === 've'))
+    .reverse();
 }
 
 /** Gom trang theo tháng, mới nhất lên đầu. */

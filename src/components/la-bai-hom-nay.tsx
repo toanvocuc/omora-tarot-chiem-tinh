@@ -170,7 +170,9 @@ export function LaBaiHomNay({
               nhan="Lưu ảnh để chia sẻ"
               kieu="vien"
               onPress={() => {
-                datPhien([la]);
+                // `false` = đừng cất xuống máy. Đây là lá hôm nay, không phải
+                // một lần rút, nên không được đè lên lần rút thật đang cất.
+                datPhien([la], false);
                 router.push('/chia-se');
               }}
             />

@@ -4,24 +4,30 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { HoiChuyenGia } from '@/components/hoi-chuyen-gia';
 import { LaBai } from '@/components/la-bai';
-import { ChuThan, Khoi, LuuYThamKhao, ManHinh, Nhan, Nut, Trong } from '@/components/nen';
+import { ChuThan, DangTai, Khoi, LuuYThamKhao, ManHinh, Nhan, Nut, Trong } from '@/components/nen';
 import { NenKhungVan, SAU_HOA_VAN } from '@/components/nen-anh';
 import { CHU } from '@/constants/giao-dien';
-import { danhDauDaGhi, layPhien } from '@/lib/phien-rut';
+import { danhDauDaGhi, usePhien } from '@/lib/phien-rut';
 import { ghiSuKien } from '@/lib/su-kien';
 import { maNguoiDung, supabase } from '@/lib/supabase';
 import { yNghia } from '@/lib/tarot';
 
 export default function KetQua() {
-  const phien = layPhien();
+  const { phien, dangNap } = usePhien();
   const [dangXem, setDangXem] = useState(0);
 
+  // Theo `phien` chứ không chạy đúng một lần lúc dựng: nạp lại trang thì phiên
+  // còn đang đọc dưới ổ đĩa, lần dựng đầu chưa có gì để ghi.
+  //
+  // Không sợ ghi `lan_rut` hai lần: `luuLanRut` thoát ngay khi thấy cờ `daGhi`,
+  // mà cờ đó nay cũng nằm dưới ổ đĩa. Và `danhDauDaGhi` sửa tại chỗ nên không
+  // sinh ra vật mới để hiệu ứng này chạy lại.
   useEffect(() => {
     if (!phien) return;
     ghiSuKien({ loai: 'xem_ket_qua', manHinh: `tarot-${phien.cacLa.length}-la` });
     luuLanRut();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [phien]);
 
   async function luuLanRut() {
     if (!phien || phien.daGhi) return;
@@ -45,6 +51,17 @@ export default function KetQua() {
       console.warn('[lan-rut]', e);
       danhDauDaGhi(false);
     }
+  }
+
+  // Còn đang đọc ổ đĩa thì chưa được kết luận là chưa rút. Kết luận sớm chính
+  // là lỗi người kiểm thử báo: F5 xong hiện "Chưa có lần rút nào" trong khi
+  // lượt rút đã bị trừ thật.
+  if (dangNap) {
+    return (
+      <ManHinh quayLai nenPhu={<NenKhungVan />} sauHoaVan={SAU_HOA_VAN.van} tieuDe="Kết quả">
+        <DangTai />
+      </ManHinh>
+    );
   }
 
   if (!phien) {
@@ -121,7 +138,12 @@ export default function KetQua() {
           <Nut nhan="Rút lại" kieu="vien" onPress={() => router.replace('/rut-bai')} />
         </View>
         <View className="flex-1">
-          <Nut nhan="Lưu ảnh" onPress={() => router.push('/chia-se')} />
+          {/* Truyền số thứ tự lá đang xem. Thiếu nó thì màn chia sẻ luôn lấy lá
+              đầu tiên, nên trải ba lá bấm lá nào cũng tải về đúng lá số 1. */}
+          <Nut
+            nhan="Lưu ảnh"
+            onPress={() => router.push({ pathname: '/chia-se', params: { la: String(dangXem) } })}
+          />
         </View>
       </View>
 

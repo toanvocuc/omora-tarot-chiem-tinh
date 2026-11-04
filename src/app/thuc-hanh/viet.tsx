@@ -103,7 +103,7 @@ export default function ManViet() {
       <View className="gap-5">
         {!tuDo && !dangSua ? (
           <Khoi vien>
-            <Nhan>Đề hôm nay</Nhan>
+            <Nhan>Câu hỏi hôm nay</Nhan>
             <Text
               style={{ fontFamily: CHU.hoaDam, fontSize: 22, lineHeight: 30 }}
               className="mt-1 text-chu-chinh">
@@ -174,9 +174,9 @@ export default function ManViet() {
         {dangSua ? (
           <Nut nhan="Thôi, viết mục mới" kieu="nhe" onPress={donDep} />
         ) : !tuDo ? (
-          <Nut nhan="Để đề đó, viết chuyện khác" kieu="nhe" onPress={() => datTuDo(true)} />
+          <Nut nhan="Viết chuyện khác" kieu="nhe" onPress={() => datTuDo(true)} />
         ) : (
-          <Nut nhan="Quay lại đề hôm nay" kieu="nhe" onPress={() => datTuDo(false)} />
+          <Nut nhan="Quay lại câu hỏi hôm nay" kieu="nhe" onPress={() => datTuDo(false)} />
         )}
 
         {daLuu ? (

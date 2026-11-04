@@ -148,7 +148,7 @@ export default function ManVe() {
     <ManHinh tieuDe="Vẽ và chụp" phu="Vài phút thả tay, không ai chấm điểm." quayLai>
       <View className="gap-5">
         <Khoi vien>
-          <Nhan>Đề hôm nay</Nhan>
+          <Nhan>Hôm nay vẽ gì</Nhan>
           <Text
             style={{ fontFamily: CHU.hoaDam, fontSize: 22, lineHeight: 30 }}
             className="mt-1 text-chu-chinh">
@@ -194,7 +194,7 @@ export default function ManVe() {
         {dangSua ? <Nut nhan="Thôi, vẽ bức mới" kieu="nhe" onPress={donDep} /> : null}
         {daLuu ? (
           <Text style={{ fontFamily: CHU.than }} className="text-center text-sm text-chu-phu">
-            Đã cất. Mai có đề mới.
+            Đã cất.
           </Text>
         ) : null}
 

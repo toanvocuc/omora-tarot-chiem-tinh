@@ -31,15 +31,15 @@ export const NHIP_THO: NhipTho[] = [
   {
     ma: 'hop',
     ten: 'Thở hộp',
-    mo: 'Bốn chặng bằng nhau, dễ theo khi mới bắt đầu',
+    mo: 'Hít vào 4 giây, giữ hơi 4 giây, thở ra 4 giây và nghỉ 4 giây trước khi bắt đầu vòng mới.',
     chang: [4, 4, 4, 4],
     cachLam:
       'Bốn chặng dài bằng nhau nên dễ bám nhịp nhất. Đều hơi quan trọng hơn nhiều vòng — không cần cố.',
   },
   {
     ma: '478',
-    ten: 'Nhịp 4–7–8',
-    mo: 'Hơi ra dài gấp đôi hơi vào',
+    ten: 'Thở 4–7–8',
+    mo: 'Hít vào nhẹ nhàng trong 4 giây, giữ hơi 7 giây, rồi từ từ thở ra trong 8 giây.',
     chang: [4, 7, 8, 0],
     cachLam:
       'Hơi ra dài gấp đôi hơi vào, và cuối vòng không giữ lại. Thấy hụt hơi thì rút ngắn, đừng nín.',
@@ -47,15 +47,15 @@ export const NHIP_THO: NhipTho[] = [
   {
     ma: 'bung',
     ten: 'Thở bụng',
-    mo: 'Vào sáu ra sáu, bụng phình lên xẹp xuống',
+    mo: 'Hít vào nhẹ nhàng, cảm nhận bụng nâng lên. Khi thở ra, để bụng từ từ hạ xuống theo nhịp thở.',
     chang: [6, 0, 6, 0],
     cachLam:
       'Đặt một tay lên bụng, để bụng đẩy tay lên khi hơi vào và lún xuống khi hơi ra. Ngực giữ yên.',
   },
   {
     ma: 'dai',
-    ten: 'Hơi ra dài',
-    mo: 'Vào bốn, ra tám, không giữ lại',
+    ten: 'Thở ra dài',
+    mo: 'Hít vào trong 4 giây, thở ra chậm rãi trong 8 giây. Thả lỏng cơ thể theo từng hơi thở.',
     chang: [4, 0, 8, 0],
     cachLam:
       'Hơi ra dài gấp đôi hơi vào mà không giữ ở giữa. Hợp lúc muốn chậm lại trước khi nằm xuống.',
@@ -63,7 +63,7 @@ export const NHIP_THO: NhipTho[] = [
   {
     ma: 'cham',
     ten: 'Thở chậm',
-    mo: 'Hơi vào và hơi ra đều nhau, không giữ lại',
+    mo: 'Hít vào 5 giây, thở ra 5 giây. Giữ hơi thở nhẹ nhàng, đều đặn và tự nhiên.',
     chang: [5, 0, 5, 0],
     cachLam:
       'Không giữ hơi chặng nào, vào và ra đều nhau. Hợp khi muốn ngồi lâu mà không phải đếm nhiều.',

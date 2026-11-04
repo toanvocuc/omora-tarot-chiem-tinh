@@ -49,7 +49,7 @@ export default function ManThien() {
   }
 
   return (
-    <ManHinh tieuDe="Ngồi thiền" phu="Chọn một khoảng, rồi ngồi yên với nó." quayLai>
+    <ManHinh tieuDe="Ngồi thiền" phu="Hãy thư giãn đầu óc và cơ thể của bạn." quayLai>
       {phut === null ? (
         <ChonDoDai chon={datPhut} />
       ) : (
