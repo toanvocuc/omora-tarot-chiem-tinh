@@ -20,6 +20,16 @@ export default function BuocGioSinh() {
   const dat = useCallback((phan: { gio?: number; phut?: number }) => {
     if (phan.gio !== undefined) setGio(phan.gio);
     if (phan.phut !== undefined) setPhut(phan.phut);
+    // Động vào bánh xe là coi như nhớ giờ sinh.
+    //
+    // Trước đây chỗ này phủ một lớp chặn vô hình lên bánh xe khi chưa tick, nên
+    // vuốt không ăn gì cả — phải chạm một cái gỡ lớp chặn rồi mới vuốt được.
+    // Người kiểm thử báo đúng chuyện đó ngày 05/11/2026: "chọn giờ sinh phải
+    // nhấn vào mới chọn được, tại sao không cho vuốt như màn ngày sinh".
+    //
+    // Đo lại bằng cử chỉ chạm giả lập: bánh xe ngày sinh vuốt đổi được, bánh xe
+    // giờ sinh đứng im. Khác nhau đúng ở lớp chặn đó.
+    setKhongNho(false);
   }, []);
 
   return (
@@ -46,19 +56,12 @@ export default function BuocGioSinh() {
       </View>
 
       <View style={{ flexShrink: 0 }}>
-        <View style={{ opacity: khongNho ? 0.3 : 1 }}>
+        {/* Làm mờ để thấy giờ này chưa được tính, nhưng KHÔNG chặn cử chỉ.
+            Lớp chặn cũ nằm ở đây, và nó biến bánh xe thành thứ nhìn bấm được mà
+            vuốt không nhúc nhích. Nay vuốt một cái là `dat` tự gỡ mờ. */}
+        <View style={{ opacity: khongNho ? 0.4 : 1 }}>
           <BanhXeGioSinh gio={gio} phut={phut} dat={dat} />
         </View>
-
-        {/* Chạm vào bánh xe đang mờ là bật nó lên luôn, khỏi phải đi tìm ô đánh dấu. */}
-        {khongNho ? (
-          <Pressable
-            onPress={() => setKhongNho(false)}
-            accessibilityRole="button"
-            accessibilityLabel="Tôi nhớ giờ sinh, chọn giờ"
-            style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}
-          />
-        ) : null}
       </View>
 
       <Pressable

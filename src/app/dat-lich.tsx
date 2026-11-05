@@ -31,7 +31,18 @@ import {
 } from '@/lib/nhac-hen-gio';
 import { guiYeuCau, KHUNG_GIO, tachChuDe } from '@/lib/yeu-cau';
 
-/** Dài tối thiểu cho câu hỏi. Ngắn hơn thì thầy không có gì để bắt đầu. */
+/**
+ * Dài tối thiểu để coi câu hỏi là "có viết".
+ *
+ * KHÔNG còn chặn gửi. Trước đây thiếu chừng này ký tự là nút gửi tắt hẳn, và
+ * người kiểm thử bác đúng ngày 05/11/2026: khách chỉ cần đặt được lịch, câu hỏi
+ * có thì tốt, không thì hỏi trực tiếp lúc gặp. Chặn lại là mất luôn người muốn
+ * đặt — y như lý lẽ đã viết cho phần hồ sơ thiếu ở `bamGui` phía dưới, mà chỗ
+ * này lại làm ngược.
+ *
+ * Giờ con số này chỉ dùng để quyết định có hỏi lại một câu trước khi gửi hay
+ * không.
+ */
 const TOI_THIEU = 15;
 
 /**
@@ -181,8 +192,9 @@ export default function DatLich() {
   if (!chuDeThat) thieu.push('chọn chủ đề');
   if (tuChonGio ? !gioHen : !chonGio) thieu.push('chọn giờ');
   if (lienHe.trim().length < TOI_THIEU_LIEN_HE) thieu.push('điền số điện thoại hoặc Zalo');
-  if (cauHoi.trim().length < TOI_THIEU) thieu.push('viết câu hỏi dài thêm một chút');
+  // Câu hỏi KHÔNG nằm trong danh sách này nữa: nó không còn là điều kiện gửi.
   const duDieuKien = thieu.length === 0;
+  const thieuCauHoi = cauHoi.trim().length < TOI_THIEU;
 
   /**
    * Hỏi trước khi gửi, nếu hồ sơ còn trống chỗ nào.
@@ -195,6 +207,23 @@ export default function DatLich() {
    * đi đâu cả: họ đang gõ dở một câu hỏi trên màn này, kéo đi là mất.
    */
   function bamGui() {
+    // Chưa viết câu hỏi thì hỏi lại một câu rồi vẫn cho gửi. Đây là lối cư xử
+    // giống hệt phần hồ sơ thiếu ngay dưới: nói thẳng, rồi để khách quyết.
+    if (thieuCauHoi) {
+      hoi(
+        'Bạn chưa viết câu hỏi',
+        'Gửi vậy cũng được — chuyên gia sẽ hỏi bạn lúc trao đổi. Viết sẵn vài dòng thì buổi hẹn vào việc nhanh hơn.',
+        [
+          { nhan: 'Để tôi viết thêm', kieu: 'bo' },
+          { nhan: 'Gửi luôn', kieu: 'manh', onPress: () => guiTiep() },
+        ]
+      );
+      return;
+    }
+    guiTiep();
+  }
+
+  function guiTiep() {
     const con = thieuHoSo(hoSo);
     if (con.length === 0) {
       void guiThat();

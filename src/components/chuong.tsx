@@ -44,6 +44,20 @@ import { ngheThongBaoToi } from '@/lib/tra-loi-thong-bao';
 
 import { rongKhung } from '@/constants/khung-web';
 
+/**
+ * Lúc hộp thông báo được mở, tính bằng mili giây.
+ *
+ * Để ở CẤP MODULE chứ không trong state hay ref. Lý do: nó chỉ được ghi trong
+ * trình xử lý cử chỉ và chỉ được đọc trong trình xử lý chạm — không nơi nào
+ * trong thân hàm dựng. Để trong state thì mỗi lần mở hộp lại dựng lại cả cây
+ * một lượt vô ích; để trong ref thì trình biên dịch React của dự án báo lỗi
+ * "đọc ref lúc dựng", vì thân cử chỉ bị tính là dựng.
+ *
+ * Cả app chỉ gắn đúng một cái chuông (ở `app/_layout.tsx`), nên một biến dùng
+ * chung là đủ.
+ */
+let moLuc = 0;
+
 const CO = 52;
 /** Không ai động vào bao lâu thì bong bóng chìm xuống. */
 const CHO_MO_DI = 5000;
@@ -191,7 +205,7 @@ export function Chuong() {
     .onEnd(() => {
       runOnJS(danhThuc)();
       runOnJS(taiLai)();
-      runOnJS(datMo)(true);
+      runOnJS(moHop)();
     });
 
   // Kéo thắng chạm: nhích tay một chút lúc bấm thì vẫn tính là bấm, nhờ
@@ -212,10 +226,44 @@ export function Chuong() {
     transform: [{ rotate: `${nghieng.value}deg` }],
   }));
 
+  /**
+   * Mở hộp, và nhớ lại thời điểm mở.
+   *
+   * `Date.now()` phải nằm TRONG hàm này chứ không nằm trong thân cử chỉ: thân
+   * cử chỉ được dựng lại mỗi lần vẽ, và trình biên dịch React của dự án chặn
+   * mọi lời gọi hàm không thuần ở đó.
+   */
+  function moHop() {
+    moLuc = Date.now();
+    datMo(true);
+  }
+
   function dongHop() {
     datMo(false);
     datDaChon([]);
     danhThuc();
+  }
+
+  /**
+   * Chạm ra ngoài hộp thì đóng — TRỪ ngay sau khi vừa mở.
+   *
+   * ───────────────────────────────────────────── CHUYỆN ĐÃ HỎNG THẬT
+   *
+   * Người kiểm thử báo ngày 05/11/2026: hộp thông báo "chỉ hiện lên cố định khi
+   * kéo chuông tới đúng một vị trí màn hình, còn ở chỗ khác thì nháy lên rồi
+   * tắt, không kịp đọc".
+   *
+   * Gốc rễ: trên web, chính cú nhấc tay mở hộp lại rơi tiếp xuống lớp nền vừa
+   * được gắn vào, và lớp nền đó gọi đóng. Hộp nằm sát đỉnh màn (`top` dưới
+   * đây), nên khi chuông đang ở gần đỉnh thì cú chạm rơi trúng THÂN hộp chứ
+   * không trúng nền — và chỉ riêng chỗ đó hộp mới ở lại. Đúng như mô tả.
+   *
+   * 350ms đủ để nuốt cú chạm lạc đó, mà vẫn ngắn hơn quãng nghỉ của người thật
+   * giữa lúc mở hộp và lúc quyết định đóng nó.
+   */
+  function chamNen() {
+    if (Date.now() - moLuc < 350) return;
+    dongHop();
   }
 
   function bamVao(t: ThongBao) {
@@ -276,8 +324,9 @@ export function Chuong() {
 
       <Modal visible={mo} transparent animationType="fade" onRequestClose={dongHop}>
         {/* Chạm ra ngoài là đóng. Thiếu lớp này thì trên Android chỉ còn nút Back,
-            mà nhiều máy giờ dùng cử chỉ vuốt nên khách tưởng bị kẹt. */}
-        <Pressable onPress={dongHop} className="flex-1 bg-black/60" />
+            mà nhiều máy giờ dùng cử chỉ vuốt nên khách tưởng bị kẹt.
+            Dùng `chamNen` chứ KHÔNG dùng thẳng `dongHop` — đọc ghi chú ở trên. */}
+        <Pressable onPress={chamNen} className="flex-1 bg-black/60" />
 
         <View
           style={{ borderColor: MAU.vang, backgroundColor: MAU.nenDen, top: le.top + 56 }}
