@@ -38,11 +38,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { CHU, MAU } from '@/constants/giao-dien';
+import { CAO_THANH_TREN, CHU, MAU } from '@/constants/giao-dien';
 import { luc, useHopThongBao, type ThongBao } from '@/lib/hop-thong-bao';
 import { ngheThongBaoToi } from '@/lib/tra-loi-thong-bao';
 
-import { rongKhung } from '@/constants/khung-web';
+import { RONG_PC, rongKhung } from '@/constants/khung-web';
 
 /**
  * Lúc hộp thông báo được mở, tính bằng mili giây.
@@ -92,7 +92,7 @@ function nhoCho(nx: number, ny: number) {
   cho.y = ny;
 }
 
-export function Chuong() {
+export function Chuong({ tren }: { tren?: boolean }) {
   const { dong, chuaDoc, taiLai, danhDauDoc, xoa } = useHopThongBao();
   const [mo, datMo] = useState(false);
   const [daChon, datDaChon] = useState<string[]>([]);
@@ -281,10 +281,26 @@ export function Chuong() {
 
   const chonHet = daChon.length > 0 && daChon.length === dong.length;
 
+  /**
+   * Hộp thông báo thả từ đâu xuống.
+   *
+   * Bản điện thoại: bám sát đỉnh màn, trải gần hết bề ngang — màn hẹp nên
+   * không có chỗ nào khác để đặt.
+   *
+   * Bản máy tính: treo ngay dưới nút chuông trên thanh điều hướng, mép phải
+   * thẳng hàng với mép phải cột nội dung. Modal của React Native vẽ ra TẬN
+   * cửa sổ chứ không nằm trong cột, nên phải tự cộng lại nửa khoảng trống hai
+   * bên — để `inset-x-3` như bản điện thoại thì hộp rộng gần 1600px.
+   */
+  const leCot = Math.max(0, (rongCuaSo - RONG_PC) / 2);
+
   return (
     <>
-      {/* box-none: lớp phủ không ăn chạm, chỉ mình bong bóng ăn. Thiếu nó là cả
-          màn hình bên dưới bấm không được. */}
+      {tren ? (
+        <NutTren chuaDoc={chuaDoc} onBam={() => { danhThuc(); taiLai(); moHop(); }} />
+      ) : (
+      /* box-none: lớp phủ không ăn chạm, chỉ mình bong bóng ăn. Thiếu nó là cả
+          màn hình bên dưới bấm không được. */
       <View pointerEvents="box-none" style={{ position: 'absolute', inset: 0 }}>
         <GestureDetector gesture={cuChi}>
           <Animated.View
@@ -321,6 +337,7 @@ export function Chuong() {
           </Animated.View>
         </GestureDetector>
       </View>
+      )}
 
       <Modal visible={mo} transparent animationType="fade" onRequestClose={dongHop}>
         {/* Chạm ra ngoài là đóng. Thiếu lớp này thì trên Android chỉ còn nút Back,
@@ -329,8 +346,18 @@ export function Chuong() {
         <Pressable onPress={chamNen} className="flex-1 bg-black/60" />
 
         <View
-          style={{ borderColor: MAU.vang, backgroundColor: MAU.nenDen, top: le.top + 56 }}
-          className="absolute inset-x-3 max-h-[64%] overflow-hidden rounded-2xl border">
+          style={
+            tren
+              ? {
+                  borderColor: MAU.vang,
+                  backgroundColor: MAU.nenDen,
+                  top: CAO_THANH_TREN + 8,
+                  right: leCot + 12,
+                  width: 400,
+                }
+              : { borderColor: MAU.vang, backgroundColor: MAU.nenDen, top: le.top + 56 }
+          }
+          className={`absolute max-h-[64%] overflow-hidden rounded-2xl border${tren ? '' : ' inset-x-3'}`}>
           <View
             style={{ borderBottomColor: MAU.vangMo }}
             className="flex-row items-center justify-between border-b px-4 py-3">
@@ -456,6 +483,37 @@ function Dong({
           {luc(tb.tao_luc)}
         </Text>
       </View>
+    </Pressable>
+  );
+}
+
+
+/**
+ * Nút chuông đứng yên trong thanh điều hướng — bản máy tính.
+ *
+ * Trên máy tính thì bong bóng kéo thả là thứ sai chỗ: không có ngón cái nào
+ * phải với tới, mà một cái bong bóng vàng lơ lửng giữa trang 1600px thì vừa
+ * che nội dung vừa trông như quảng cáo. Nó còn bị cột nội dung cắt mất một
+ * nửa khi hít vào cạnh phải, vì cột có `overflow: hidden`.
+ *
+ * Ở đây nó về đúng chỗ người ta quen tìm: góc phải thanh trên.
+ */
+function NutTren({ chuaDoc, onBam }: { chuaDoc: number; onBam: () => void }) {
+  return (
+    <Pressable
+      onPress={onBam}
+      accessibilityRole="button"
+      accessibilityLabel={chuaDoc > 0 ? `Thông báo, ${chuaDoc} tin mới` : 'Thông báo'}
+      hitSlop={8}
+      style={{ width: 40, height: 40 }}
+      className="items-center justify-center rounded-full active:opacity-60">
+      <Ionicons name="notifications-outline" size={21} color={MAU.chuPhu} />
+      {chuaDoc > 0 ? (
+        <View
+          style={{ backgroundColor: MAU.canh, borderColor: MAU.nenDen }}
+          className="absolute right-1.5 top-1.5 h-[11px] w-[11px] rounded-full border-2"
+        />
+      ) : null}
     </Pressable>
   );
 }

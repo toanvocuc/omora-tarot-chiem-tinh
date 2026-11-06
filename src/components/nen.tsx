@@ -19,6 +19,7 @@ import { ChumSaoToa } from '@/components/hieu-ung-sao';
 import { BauTroiDong } from '@/components/bau-troi-dong';
 import { NutQuayLai } from '@/components/nut-quay-lai';
 import { CAO_THANH_TAB, CHU, KHOI_CHUYEN, MAU, NEN_CHUYEN } from '@/constants/giao-dien';
+import { useManPC } from '@/constants/khung-web';
 
 export function ManHinh({
   tieuDe,
@@ -70,6 +71,11 @@ export function ManHinh({
   // Chừa chỗ cho thanh tab và thanh điều hướng của máy, không thì dòng cuối
   // trang nằm khuất phía dưới và cuộn hết cỡ vẫn không đọc được.
   const le = useSafeAreaInsets();
+  /**
+   * Bản máy tính: lề rộng hơn, tiêu đề to hơn, và KHÔNG chừa chỗ thanh tab
+   * dưới vì trên máy tính điều hướng đã chuyển lên thanh trên.
+   */
+  const pc = useManPC();
 
   return (
     <LinearGradient colors={NEN_CHUYEN} locations={[0, 0.45, 1]} style={{ flex: 1 }}>
@@ -78,10 +84,10 @@ export function ManHinh({
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <ScrollView
           ref={cuonRef}
-          contentContainerClassName="px-5"
+          contentContainerClassName={pc ? 'px-10' : 'px-5'}
           contentContainerStyle={{
             paddingTop: sauHoaVan ? Math.max(12, sauHoaVan + 8 - le.top) : 12,
-            paddingBottom: CAO_THANH_TAB + 16 + le.bottom,
+            paddingBottom: pc ? 64 : CAO_THANH_TAB + 16 + le.bottom,
           }}
           keyboardShouldPersistTaps="handled"
           refreshControl={
@@ -102,7 +108,13 @@ export function ManHinh({
           ) : null}
           {tieuDe ? (
             <Text
-              style={{ fontFamily: CHU.hoaDam, fontSize: 38, lineHeight: 44 }}
+              style={{
+                fontFamily: CHU.hoaDam,
+                // 38 là cỡ cho cột 480. Giữ nguyên con số đó trong khung 1180
+                // thì tiêu đề teo lại thành một dòng chữ lạc giữa trang.
+                fontSize: pc ? 52 : 38,
+                lineHeight: pc ? 60 : 44,
+              }}
               className={`text-chu-chinh${canhGiua ? ' text-center' : ''}`}>
               {tieuDe}
             </Text>

@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CAO_THANH_TAB, CHU, MAU } from '@/constants/giao-dien';
+import { useManPC } from '@/constants/khung-web';
 
 /**
  * Năm thẻ tab. Thứ tự ở đây chính là thứ tự khách nhìn thấy, nên nó không phải
@@ -35,13 +36,28 @@ export default function TabsLayout() {
   // bốn mục. Phải cộng le.bottom vào cả chiều cao lẫn đệm dưới.
   const le = useSafeAreaInsets();
 
+  /**
+   * Máy tính thì điều hướng chuyển lên thanh trên, thanh dưới tắt hẳn.
+   *
+   * Tắt bằng `display: 'none'` chứ không bỏ `<Tabs>` đi: bộ điều hướng vẫn
+   * phải còn để năm tuyến con sống nguyên, và để thu hẹp cửa sổ lại là thanh
+   * dưới hiện về ngay mà không phải tải lại trang.
+   *
+   * Thanh trên KHÔNG dựng ở đây mà ở `app/_layout.tsx`: dựng ở đây thì bấm
+   * sang màn chi tiết — rút bài, cung hoàng đạo, đặt lịch — là cả bộ tab rời
+   * khỏi cây và thanh điều hướng biến mất giữa chừng.
+   */
+  const pc = useManPC();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: MAU.vang,
         tabBarInactiveTintColor: MAU.chuMo,
-        tabBarStyle: {
+        tabBarStyle: pc
+          ? { display: 'none' }
+          : {
           backgroundColor: MAU.nenNhat,
           borderTopColor: MAU.vien,
           height: CAO_THANH_TAB + le.bottom,

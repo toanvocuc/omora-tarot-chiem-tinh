@@ -21,8 +21,9 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { HopThoai } from '@/components/hop-thoai';
 import { Chuong } from '@/components/chuong';
+import { ThanhTren } from '@/components/thanh-tren';
 import { CHU, MAU } from '@/constants/giao-dien';
-import { KHUNG_COT, NEN_NGOAI } from '@/constants/khung-web';
+import { NEN_NGOAI, useKhungCot, useManPC } from '@/constants/khung-web';
 import { khiDoiTaiKhoan } from '@/lib/doi-tai-khoan';
 import { datCoHoSo, docHoSo } from '@/lib/ho-so';
 import { goHetNhacHen } from '@/lib/nhac-hen';
@@ -64,6 +65,9 @@ SplashScreen.preventAutoHideAsync();
 batHienKhiDangMo();
 
 export default function RootLayout() {
+  // Bề rộng cột, đọc sống: trên máy tính nó nới ra, dưới ngưỡng thì y như cũ.
+  const khungCot = useKhungCot();
+  const pc = useManPC();
   const [xong, setXong] = useState(false);
   const [coPhien, setCoPhien] = useState(false);
   /**
@@ -294,8 +298,15 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: NEN_NGOAI }}>
       <StatusBar style="light" />
-      {/* Cột nội dung. Trên máy thật `KHUNG_COT` chỉ là `flex: 1`. */}
-      <View style={KHUNG_COT}>
+      {/* Cột nội dung. Trên máy thật khung này chỉ là `flex: 1`. */}
+      <View style={khungCot}>
+      {/* Thanh điều hướng của bản máy tính, dựng NGOÀI `Stack` nên nó đứng yên
+          khi chuyển màn — kể cả sang mấy màn chi tiết không thuộc bộ tab.
+
+          Ba điều kiện loại trừ: chưa đăng nhập thì không có gì để điều hướng;
+          đang khai hồ sơ thì thanh này là lối thoát khiến khách bỏ dở giữa
+          chừng; và thầy có màn riêng `/thay`, không dùng năm tab của khách. */}
+      {pc && coPhien && !laThay && doan[0] !== 'nhap-ho-so' ? <ThanhTren /> : null}
       <Stack
         screenOptions={{
           headerShown: false,
@@ -312,7 +323,7 @@ export default function RootLayout() {
           Chỉ hiện khi đã có phiên và đã qua phần nhập hồ sơ — người đang đăng
           nhập hay đang khai ngày sinh thì chưa có thông báo nào để xem, mà một
           bong bóng lạ nổi lên lúc đó chỉ làm họ phân tâm. */}
-      {coPhien && doan[0] !== 'nhap-ho-so' ? <Chuong /> : null}
+      {coPhien && doan[0] !== 'nhap-ho-so' && !pc ? <Chuong /> : null}
 
       {/* Hộp thoại hỏi lại, thay cho `Alert.alert` — cái đó là hàm RỖNG trên
           web, xem `lib/hoi-lai.ts`. Gắn ở đây, ngoài `Stack`, để nó nổi trên

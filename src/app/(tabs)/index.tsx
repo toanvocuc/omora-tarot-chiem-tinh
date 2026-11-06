@@ -24,6 +24,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { BieuTuongCung } from '@/components/bieu-tuong-cung';
 import { LaBaiHomNayGon, ngayChuHomNay } from '@/components/la-bai-hom-nay';
+import { LuoiPC, OLuoi } from '@/components/luoi-pc';
 import { LuuYThamKhao, ManHinh, Nhan } from '@/components/nen';
 import { NenKhungVan, SAU_HOA_VAN } from '@/components/nen-anh';
 import { CHU, MAU } from '@/constants/giao-dien';
@@ -60,45 +61,61 @@ export default function MoDau() {
 
       {ma && cung ? <HuyHieu ma={ma} ten={cung.ten} /> : null}
 
-      <View className="gap-4">
-        <The
-          nhan="Tarot"
-          icon={{ bo: 'mci', ma: 'cards-playing-outline' }}
-          ten="Rút bài"
-          mo="Một lá cho câu hỏi nhanh, hoặc ba lá cho quá khứ hiện tại tương lai"
-          onPress={() => router.push('/rut-bai')}
-        />
+      {/* Máy tính xếp năm thẻ thành lưới hai cột. Xếp dọc trong khung 1180 thì
+          mỗi thẻ là một thanh ngang dài hơn gang tay, chữ nằm lọt thỏm bên trái
+          còn hai phần ba thẻ bỏ trống. Hai cột đưa thẻ về khoảng 550 — gần đúng
+          bề ngang một màn điện thoại, nên chữ bên trong ngắt dòng y như cũ. */}
+      <LuoiPC>
+        <OLuoi>
+          <The
+            nhan="Tarot"
+            icon={{ bo: 'mci', ma: 'cards-playing-outline' }}
+            ten="Rút bài"
+            mo="Một lá cho câu hỏi nhanh, hoặc ba lá cho quá khứ hiện tại tương lai"
+            onPress={() => router.push('/rut-bai')}
+          />
+        </OLuoi>
 
         {/* Không nhắc lại tên cung ở đây: huy hiệu ngay phía trên đã nói rồi,
             đọc liền hai lần nghe như máy lặp. */}
-        <The
-          nhan="Cung hoàng đạo"
-          icon={ma ? { bo: 'mci', ma: `zodiac-${ma}` } : { bo: 'ion', ma: 'sunny-outline' }}
-          ten="Tử vi và tính cách"
-          mo={`Hôm nay, tuần này, và ${cung ? cung.ten : 'cung của bạn'} vốn là người thế nào`}
-          onPress={() => router.push('/cung')}
-        />
-        <The
-          nhan="Độ hợp"
-          icon={{ bo: 'ion', ma: 'heart-outline' }}
-          ten="Bạn và người ấy"
-          mo="So hai cung hoàng đạo với nhau"
-          onPress={() => router.push('/cung/do-hop')}
-        />
-        <The
-          nhan="Thần số học"
-          icon={{ bo: 'ion', ma: 'calculator-outline' }}
-          ten={so ? `Số chủ đạo ${so}` : 'Số chủ đạo và số vận mệnh'}
-          mo="Số chủ đạo từ ngày sinh và số vận mệnh từ họ tên"
-          onPress={() => router.push('/than-so')}
-        />
-        <The
-          nhan="Hỏi chuyên gia"
-          icon={{ bo: 'ion', ma: 'chatbubble-ellipses-outline' }}
-          ten="Đặt một buổi tư vấn"
-          mo="Khi muốn hỏi một câu cụ thể mà app chưa trả lời được"
-          onPress={() => router.push('/chuyen-gia')}
-        />
+        <OLuoi>
+          <The
+            nhan="Cung hoàng đạo"
+            icon={ma ? { bo: 'mci', ma: `zodiac-${ma}` } : { bo: 'ion', ma: 'sunny-outline' }}
+            ten="Tử vi và tính cách"
+            mo={`Hôm nay, tuần này, và ${cung ? cung.ten : 'cung của bạn'} vốn là người thế nào`}
+            onPress={() => router.push('/cung')}
+          />
+        </OLuoi>
+        <OLuoi>
+          <The
+            nhan="Độ hợp"
+            icon={{ bo: 'ion', ma: 'heart-outline' }}
+            ten="Bạn và người ấy"
+            mo="So hai cung hoàng đạo với nhau"
+            onPress={() => router.push('/cung/do-hop')}
+          />
+        </OLuoi>
+        <OLuoi>
+          <The
+            nhan="Thần số học"
+            icon={{ bo: 'ion', ma: 'calculator-outline' }}
+            ten={so ? `Số chủ đạo ${so}` : 'Số chủ đạo và số vận mệnh'}
+            mo="Số chủ đạo từ ngày sinh và số vận mệnh từ họ tên"
+            onPress={() => router.push('/than-so')}
+          />
+        </OLuoi>
+        {/* Hai thẻ cuối trải hết bề ngang: lưới 2+2+1 có một nhịp nghỉ ở cuối,
+            còn 2+2 rồi bỏ trống nửa hàng thì nhìn như bị thiếu mất một thẻ. */}
+        <OLuoi rong>
+          <The
+            nhan="Hỏi chuyên gia"
+            icon={{ bo: 'ion', ma: 'chatbubble-ellipses-outline' }}
+            ten="Đặt một buổi tư vấn"
+            mo="Khi muốn hỏi một câu cụ thể mà app chưa trả lời được"
+            onPress={() => router.push('/chuyen-gia')}
+          />
+        </OLuoi>
 
         {/* Thiếu ngày sinh thì hai mục trên chạy rỗng. Nói thẳng chỗ điền, đặt
             cuối danh sách để nó là lời mời chứ không phải cửa chặn.
@@ -107,18 +124,20 @@ export default function MoDau() {
             bước cuối ghi cả hồ sơ một lượt, nên không nạp sẵn là mấy mục không
             đi qua bị ghi đè bằng giá trị rỗng — mất luôn cái tên đã có. */}
         {!ns ? (
-          <The
-            nhan="Còn thiếu"
-          icon={{ bo: 'ion', ma: 'calendar-outline' }}
-            ten="Thêm ngày sinh"
-            mo="Có ngày sinh mới tính được cung hoàng đạo và số chủ đạo của bạn"
-            onPress={() => {
-              napTuHoSo(hoSo);
-              router.push('/nhap-ho-so/ten');
-            }}
-          />
+          <OLuoi rong>
+            <The
+              nhan="Còn thiếu"
+              icon={{ bo: 'ion', ma: 'calendar-outline' }}
+              ten="Thêm ngày sinh"
+              mo="Có ngày sinh mới tính được cung hoàng đạo và số chủ đạo của bạn"
+              onPress={() => {
+                napTuHoSo(hoSo);
+                router.push('/nhap-ho-so/ten');
+              }}
+            />
+          </OLuoi>
         ) : null}
-      </View>
+      </LuoiPC>
 
       <LuuYThamKhao />
     </ManHinh>

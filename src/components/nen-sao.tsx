@@ -7,13 +7,9 @@
 
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Dimensions, View } from 'react-native';
+import { View } from 'react-native';
 
 import { MAU } from '@/constants/giao-dien';
-
-import { rongKhung } from '@/constants/khung-web';
-
-const RONG = rongKhung();
 
 export function NenSao({
   cao = 420,
@@ -30,7 +26,10 @@ export function NenSao({
       style={{ position: 'absolute', top: 0, left: 0, right: 0, height: cao }}>
       <Image
         source={require('@/assets/nen/ngan-ha.jpg')}
-        style={{ width: RONG, height: cao, opacity: mo }}
+        // Trải hết bề ngang khung cha. Trước đây là con số chốt cứng lúc nạp
+        // trang, nên khi khung biết nới ra cho máy tính thì ảnh hụt mất một
+        // mảng bên phải cho tới khi tải lại.
+        style={{ width: '100%', height: cao, opacity: mo }}
         contentFit="cover"
         contentPosition="top"
       />

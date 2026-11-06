@@ -34,12 +34,13 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { KhoiGia } from '@/components/gia-giam';
+import { LuoiPC, OLuoi } from '@/components/luoi-pc';
 import { DangTai, ManHinh, Nhan, Trong, VanNgan } from '@/components/nen';
 import { CHU, MAU } from '@/constants/giao-dien';
 import { useQuanTam } from '@/lib/quan-tam';
 import { anhSanPham, useSanPham, type SanPham } from '@/lib/san-pham';
 
-import { rongKhung } from '@/constants/khung-web';
+import { rongKhung, useManPC } from '@/constants/khung-web';
 
 export default function TrungBay() {
   const { dong, loi, dangTai } = useSanPham();
@@ -93,10 +94,14 @@ export default function TrungBay() {
       {tatCa.length > 0 ? (
         <View>
           <Nhan>Tất cả hàng ({tatCa.length})</Nhan>
-          <View className="mt-3 gap-3">
-            {tatCa.map((s) => (
-              <TheDoc key={s.ma} mon={s} />
-            ))}
+          <View className="mt-3">
+            <LuoiPC>
+              {tatCa.map((s) => (
+                <OLuoi key={s.ma}>
+                  <TheDoc mon={s} />
+                </OLuoi>
+              ))}
+            </LuoiPC>
           </View>
         </View>
       ) : null}
@@ -177,9 +182,19 @@ const CHO_TU_CHAY = 4000;
  */
 function DaiNoiBat({ ds }: { ds: SanPham[] }) {
   const { width: rongCuaSo } = useWindowDimensions();
+  const pc = useManPC();
   // Thẻ rộng theo CỘT chứ không theo cửa sổ — xem khung-web.ts.
   const width = rongKhung(rongCuaSo);
-  const rong = Math.max(240, width - LE_MAN * 2);
+  /*
+   * Máy tính bày HAI món một lúc thay vì một.
+   *
+   * Một thẻ rộng 1100 thì ảnh hàng phình to méo mó, mà dải vuốt ngang cũng
+   * mất nghĩa: màn đã rộng sẵn, bày một món một lượt là phí hai phần ba chỗ.
+   * Lề cũng rộng hơn vì `ManHinh` đổi sang `px-10` trên máy tính.
+   */
+  const leMan = pc ? 40 : LE_MAN;
+  const vua = width - leMan * 2;
+  const rong = Math.max(240, pc ? (vua - KHE) / 2 : vua);
   const buoc = rong + KHE;
   const cuon = useRef<ScrollView>(null);
   const [o, datO] = useState(0);

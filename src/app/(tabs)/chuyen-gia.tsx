@@ -19,6 +19,7 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
+import { CotDoc, LuoiPC, OLuoi } from '@/components/luoi-pc';
 import { DangTai, ManHinh, Trong } from '@/components/nen';
 import { NenChomSao } from '@/components/nen-anh';
 import { SaoKemSo } from '@/components/sao';
@@ -61,13 +62,20 @@ export default function DanhSachChuyenGia() {
          * Từ hai người trở lên thì danh sách lại đúng hơn: lúc đó việc của màn này
          * là cho chọn, không phải giới thiệu một người.
          */
-        <ThongTin thay={dong[0]} />
+        /* Hồ sơ một người là nội dung để ĐỌC: giới thiệu, đánh giá, ba gói.
+           Kéo ra 1180 thì mỗi dòng dài cả gang tay, mắt mỏi mà trang vẫn
+           trống hai bên. Bó lại thành cột hẹp căn giữa. */
+        <CotDoc>
+          <ThongTin thay={dong[0]} />
+        </CotDoc>
       ) : (
-        <View className="gap-3">
+        <LuoiPC>
           {dong.map((t) => (
-            <TheGon key={t.ma} thay={t} />
+            <OLuoi key={t.ma}>
+              <TheGon thay={t} />
+            </OLuoi>
           ))}
-        </View>
+        </LuoiPC>
       )}
     </ManHinh>
   );

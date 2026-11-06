@@ -12,7 +12,9 @@ import { DangTai } from '@/components/nen';
 import { dangHenLaBai } from '@/lib/thong-bao';
 import { NenTroiSao } from '@/components/nen-anh';
 import { ThanhTieuDe } from '@/components/thanh-tieu-de';
+import { CotDoc } from '@/components/luoi-pc';
 import { CAO_THANH_TAB, CHU, MAU, NEN_CHUYEN } from '@/constants/giao-dien';
+import { useManPC } from '@/constants/khung-web';
 import { napTuHoSo } from '@/lib/ban-nhap';
 import { tachNgay, useHoSo } from '@/lib/ho-so';
 import { useYeuCauCuaToi } from '@/lib/yeu-cau';
@@ -54,6 +56,12 @@ export default function CaNhan() {
   const ns = tachNgay(hoSo?.ngay_sinh ?? null);
   const ma = ns ? cungTheoNgay(ns.ngay, ns.thang) : null;
   const le = useSafeAreaInsets();
+  /*
+   * Màn này là danh sách cài đặt: nhãn bên trái, giá trị bên phải. Trải ra
+   * 1180 thì hai đầu một dòng cách nhau cả gang tay và mắt phải quét ngang
+   * mới ghép được "Nơi sinh" với "Chưa có". Bó lại thành cột hẹp.
+   */
+  const pc = useManPC();
 
   return (
     <LinearGradient colors={NEN_CHUYEN} locations={[0, 0.45, 1]} style={{ flex: 1 }}>
@@ -63,14 +71,27 @@ export default function CaNhan() {
           phần còn lại của app, nên lấy vân ảnh ở mức chìm. */}
       <NenTroiSao mo={0.88} />
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
-        <ThanhTieuDe ten="Cá nhân" quayLai={false} />
+        {/* Máy tính đã có tên màn sáng lên trên thanh điều hướng, nên thanh
+            tiêu đề nhỏ ở đây thành dòng thứ hai nói đúng một chuyện. Thay bằng
+            tiêu đề lớn, khớp với bốn màn tab kia. */}
+        {pc ? null : <ThanhTieuDe ten="Cá nhân" quayLai={false} />}
 
         {dangTai ? (
           <DangTai />
         ) : (
           <ScrollView
-            contentContainerClassName="px-5 pt-7"
-            contentContainerStyle={{ paddingBottom: CAO_THANH_TAB + 16 + le.bottom }}>
+            contentContainerClassName={pc ? 'px-10 pt-7' : 'px-5 pt-7'}
+            contentContainerStyle={{
+              paddingBottom: pc ? 64 : CAO_THANH_TAB + 16 + le.bottom,
+            }}>
+            <CotDoc>
+            {pc ? (
+              <Text
+                style={{ fontFamily: CHU.hoaDam, fontSize: 52, lineHeight: 60 }}
+                className="mb-8 text-chu-chinh">
+                Cá nhân
+              </Text>
+            ) : null}
             <View className="items-center">
               <View
                 style={{ borderColor: MAU.vangMo }}
@@ -181,6 +202,7 @@ export default function CaNhan() {
             </Text>
 
             <DongPhienBan />
+            </CotDoc>
           </ScrollView>
         )}
       </SafeAreaView>

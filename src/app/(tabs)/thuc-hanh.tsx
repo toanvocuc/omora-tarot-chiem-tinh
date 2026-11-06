@@ -25,6 +25,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { BieuDoTuan } from '@/components/bieu-do-tuan';
 import { CayCuaBan } from '@/components/cay-cua-ban';
+import { LuoiPC, OLuoi } from '@/components/luoi-pc';
 import { Khoi, ManHinh, Nhan } from '@/components/nen';
 import { CHU, MAU } from '@/constants/giao-dien';
 import {
@@ -69,46 +70,70 @@ export default function ThucHanh() {
       <View className="gap-4">
         {moc ? <TheMoc chuoi={moc} /> : null}
 
-        <CayCuaBan daTuoi={daTuoi} conLai={nangLuongConLai(buoi, daTuoi)} tuoi={() => tuoiCay()} />
-
-        <ChuoiNgay chuoi={chuoi} phut={phut} ngay={bayNgayQua(buoi)} />
+        {/* Cây và chuỗi ngày là hai thứ để LIẾC, không phải để đọc. Trên máy
+            tính xếp cạnh nhau thì cả hai cùng nằm trong một tầm mắt, thay vì
+            phải cuộn qua cái cây cao nửa màn mới thấy con số chuỗi ngày. */}
+        <LuoiPC>
+          <OLuoi>
+            <CayCuaBan
+              daTuoi={daTuoi}
+              conLai={nangLuongConLai(buoi, daTuoi)}
+              tuoi={() => tuoiCay()}
+            />
+          </OLuoi>
+          <OLuoi>
+            <ChuoiNgay chuoi={chuoi} phut={phut} ngay={bayNgayQua(buoi)} />
+          </OLuoi>
+        </LuoiPC>
 
         {laChuNhat && tuan.soBuoi > 0 ? <NhinLaiTuan tuan={tuan} /> : null}
 
-        <The
-          nhan="5 tới 15 phút"
-          ten="Bài thở"
-          mo="Tĩnh tâm và thở đều theo nhịp của vòng tròn"
-          lanCuoi={lanCuoi(buoi, 'tho')}
-          onPress={() => router.push('/thuc-hanh/tho')}
-        />
-        <The
-          nhan="5 tới 30 phút"
-          ten="Ngồi thiền"
-          mo="Đặt máy xuống, giữ yên trong khoảng bạn chọn"
-          lanCuoi={lanCuoi(buoi, 'ngoi-yen')}
-          onPress={() => router.push('/thuc-hanh/thien')}
-        />
-        <The
-          nhan="Mỗi ngày một đề"
-          ten="Viết"
-          mo="Một câu hỏi mở, và trang giấy chỉ riêng bạn"
-          lanCuoi={lanCuoi(buoi, 'viet')}
-          onPress={() => router.push('/thuc-hanh/viet')}
-        />
-        <The
-          nhan="Vài phút"
-          ten="Vẽ và chụp"
-          mo="Thả tay vẽ hoặc chụp một tấm, không ai chấm điểm"
-          lanCuoi={lanCuoi(buoi, 've')}
-          onPress={() => router.push('/thuc-hanh/ve')}
-        />
-        <The
-          nhan="Khi cần một người"
-          ten="Đặt một buổi trò chuyện"
-          mo="Khi trong lòng có điều cần nói với người khác"
-          onPress={() => router.push('/chuyen-gia')}
-        />
+        <LuoiPC>
+          <OLuoi>
+            <The
+              nhan="5 tới 15 phút"
+              ten="Bài thở"
+              mo="Tĩnh tâm và thở đều theo nhịp của vòng tròn"
+              lanCuoi={lanCuoi(buoi, 'tho')}
+              onPress={() => router.push('/thuc-hanh/tho')}
+            />
+          </OLuoi>
+          <OLuoi>
+            <The
+              nhan="5 tới 30 phút"
+              ten="Ngồi thiền"
+              mo="Đặt máy xuống, giữ yên trong khoảng bạn chọn"
+              lanCuoi={lanCuoi(buoi, 'ngoi-yen')}
+              onPress={() => router.push('/thuc-hanh/thien')}
+            />
+          </OLuoi>
+          <OLuoi>
+            <The
+              nhan="Mỗi ngày một đề"
+              ten="Viết"
+              mo="Một câu hỏi mở, và trang giấy chỉ riêng bạn"
+              lanCuoi={lanCuoi(buoi, 'viet')}
+              onPress={() => router.push('/thuc-hanh/viet')}
+            />
+          </OLuoi>
+          <OLuoi>
+            <The
+              nhan="Vài phút"
+              ten="Vẽ và chụp"
+              mo="Thả tay vẽ hoặc chụp một tấm, không ai chấm điểm"
+              lanCuoi={lanCuoi(buoi, 've')}
+              onPress={() => router.push('/thuc-hanh/ve')}
+            />
+          </OLuoi>
+          <OLuoi rong>
+            <The
+              nhan="Khi cần một người"
+              ten="Đặt một buổi trò chuyện"
+              mo="Khi trong lòng có điều cần nói với người khác"
+              onPress={() => router.push('/chuyen-gia')}
+            />
+          </OLuoi>
+        </LuoiPC>
       </View>
     </ManHinh>
   );

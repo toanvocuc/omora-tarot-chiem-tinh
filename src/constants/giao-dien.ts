@@ -76,3 +76,12 @@ export const TY_LE_LA_BAI = 57 / 100;
  * còn ba pixel, và dấu tiếng Việt đội lên là mất chân chữ.
  */
 export const CAO_THANH_TAB = 70;
+
+/**
+ * Chiều cao thanh điều hướng trên cùng — CHỈ bản web trên máy tính.
+ *
+ * Để ở đây chứ không ở `components/thanh-tren` vì chuông cũng cần con số này
+ * để thả hộp thông báo xuống ngay dưới thanh, mà thanh lại dựng chuông bên
+ * trong nó — để bên kia là hai tệp nhập lẫn nhau thành vòng.
+ */
+export const CAO_THANH_TREN = 64;
