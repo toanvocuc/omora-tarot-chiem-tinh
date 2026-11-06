@@ -84,9 +84,23 @@ export function soDoKhung(rongCuaSo: number) {
     demNgang,
     demTren: kep(62, 0.052, 82, rongCuaSo),
     demDuoi: kep(56, 0.054, 82, rongCuaSo),
-    /** Bề dày dải hoa văn: cạnh trên dưới, rồi cạnh trái phải. */
-    vienDoc: kep(100, 0.109, 167, rongCuaSo),
-    vienNgang: kep(73, 0.082, 126, rongCuaSo),
+    /**
+     * Bề dày dải hoa văn: cạnh trên dưới, rồi cạnh trái phải.
+     *
+     * Lần đầu tôi lấy nhầm con số: `clamp(100,10.9vw,167)` và
+     * `clamp(73,8.2vw,126)` là luật ĐẦU TIÊN trong `discovery.css`, nhưng
+     * cuối tệp bản mẫu còn một luật ghi đè nữa, kèm ghi chú của chính họ:
+     * "giữ góc trăng và ngôi sao giữa đúng tỷ lệ trên màn rộng".
+     *
+     *     --frame-side: clamp(96px, 10.7vw, 163px)
+     *     --frame-cap:  var(--frame-side) * 1.3333
+     *
+     * Ở màn 1920 ra 163 và 217, chứ không phải 126 và 167. Thiếu nó thì dải
+     * hoa văn bị nén dọc hơn ba lần trong khi kéo ngang — thành một vệt nhoè,
+     * đúng chỗ sếp chê ngày 07/11/2026.
+     */
+    vienNgang: kep(96, 0.107, 163, rongCuaSo),
+    vienDoc: Math.round(kep(96, 0.107, 163, rongCuaSo) * 1.3333),
     /** Lòng khung — chỗ nội dung thật sự nằm. 1170 ở màn 1920. */
     long: Math.max(320, rong - demNgang * 2),
   };

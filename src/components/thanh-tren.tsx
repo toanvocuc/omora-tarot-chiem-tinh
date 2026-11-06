@@ -32,7 +32,10 @@ const MUC = [
   { duong: '/', ten: 'Khám phá', icon: 'planet-outline' },
   { duong: '/thuc-hanh', ten: 'Thực hành', icon: 'leaf-outline' },
   { duong: '/chuyen-gia', ten: 'Chuyên gia', icon: 'people-outline' },
-  { duong: '/trung-bay', ten: 'Shop', icon: 'storefront-outline' },
+  // "Cửa hàng" chứ không "Cửa hàng Omora": thanh có năm mục, mục dài thêm
+  // sáu ký tự là đẩy mục Cá nhân ra sát nút chuông. Tên đầy đủ nằm ở tiêu đề
+  // màn. Thanh tab dưới của điện thoại vẫn là "Shop" — chỗ đó hẹp hơn nữa.
+  { duong: '/trung-bay', ten: 'Cửa hàng', icon: 'storefront-outline' },
   { duong: '/ca-nhan', ten: 'Cá nhân', icon: 'person-outline' },
 ] as const;
 

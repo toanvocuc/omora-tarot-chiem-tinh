@@ -104,7 +104,10 @@ function TheAnhTren({ thay }: { thay: DongChuyenGia }) {
   return (
     <Pressable
       onPress={() => router.push({ pathname: '/ho-so-thay', params: { ma: thay.ma } })}
-      style={{ borderColor: MAU.vien, borderRadius: 15 }}
+      // `flex: 1` để thẻ cao bằng ô lưới. Thiếu nó thì mỗi thẻ cao theo nội
+      // dung của chính nó — người có đánh giá thì cao hơn người chưa có, và ba
+      // thẻ thụt thò nhau.
+      style={{ borderColor: MAU.vien, borderRadius: 15, flex: 1 }}
       className="overflow-hidden border bg-nen-nhat active:opacity-80">
       {thay.anh ? (
         <Image source={{ uri: thay.anh }} style={{ width: '100%', height: 245 }} contentFit="cover" />

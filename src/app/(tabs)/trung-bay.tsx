@@ -55,7 +55,7 @@ export default function TrungBay() {
   const soMon = quanTam.reduce((t, m) => t + m.soLuong, 0);
 
   return (
-    <ManHinh tieuDe="Shop" phu="Đá phong thuỷ, ngọc và đồ bày của cửa hàng.">
+    <ManHinh tieuDe="Cửa hàng Omora" phu="Đá phong thuỷ, ngọc và đồ bày của cửa hàng.">
       {/* Lối vào danh sách quan tâm. Chỉ hiện khi đã gom được món nào — chưa gom
           gì mà bày một cái thùng rỗng ra thì chỉ tổ làm khách thắc mắc. */}
       {soMon > 0 ? (
@@ -102,7 +102,9 @@ export default function TrungBay() {
                 dùng lại luôn, không đẻ thêm kiểu thẻ thứ ba. */}
             <LuoiPC cot={pc ? 4 : 2}>
               {tatCa.map((s) => (
-                <OLuoi key={s.ma}>{pc ? <TheNoiBat mon={s} /> : <TheDoc mon={s} />}</OLuoi>
+                <OLuoi key={s.ma}>
+                  {pc ? <TheNoiBat mon={s} day /> : <TheDoc mon={s} />}
+                </OLuoi>
               ))}
             </LuoiPC>
           </View>
@@ -330,12 +332,16 @@ function DaiNoiBat({ ds }: { ds: SanPham[] }) {
 }
 
 /** Thẻ to, ảnh nằm trên — một món trong dải nổi bật. */
-function TheNoiBat({ mon }: { mon: SanPham }) {
+function TheNoiBat({ mon, day }: { mon: SanPham; day?: boolean }) {
   const anh = anhSanPham(mon.anh);
   return (
     <Pressable
       onPress={() => router.push({ pathname: '/san-pham', params: { ma: mon.ma } })}
-      style={{ borderColor: MAU.vangMo }}
+      // `day` = cao bằng ô lưới. Thiếu nó thì thẻ cao theo nội dung — tên hàng
+      // một dòng hay hai dòng, có giá gạch hay không — và cả lưới thụt thò.
+      // KHÔNG bật mặc định: dải "Nổi bật tuần này" cũng dùng thẻ này, ở đó
+      // chiều cao do nội dung quyết mới đúng.
+      style={{ borderColor: MAU.vangMo, ...(day ? { flex: 1 } : null) }}
       className="overflow-hidden rounded-2xl border bg-nen-nhat active:opacity-80">
       {anh ? (
         <Image source={{ uri: anh }} style={{ width: '100%', height: 210 }} contentFit="cover" />
