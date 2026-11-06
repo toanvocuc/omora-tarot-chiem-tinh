@@ -85,3 +85,12 @@ export const CAO_THANH_TAB = 70;
  * trong nó — để bên kia là hai tệp nhập lẫn nhau thành vòng.
  */
 export const CAO_THANH_TREN = 64;
+
+/**
+ * Nền phẳng cho bản web trên máy tính.
+ *
+ * Vẫn là bộ ba màu để dùng chung chỗ với `NEN_CHUYEN`, nhưng cả ba giống
+ * nhau nên không thấy chuyển sắc. Trên máy tính khung hoa văn mới là thứ
+ * đáng nhìn; một nền tím chuyển sắc phía sau chỉ làm đục cả trang.
+ */
+export const NEN_PHANG: readonly [string, string, string] = [MAU.nenDen, MAU.nenDen, MAU.nenDen];

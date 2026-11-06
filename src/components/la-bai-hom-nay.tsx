@@ -19,6 +19,7 @@ import { HoiChuyenGia } from '@/components/hoi-chuyen-gia';
 import { LaBai } from '@/components/la-bai';
 import { ChuThan, DangTai, Khoi, Nhan, Nut, Trong, VanNgan } from '@/components/nen';
 import { CHU, MAU, TY_LE_LA_BAI } from '@/constants/giao-dien';
+import { useManPC } from '@/constants/khung-web';
 import { tachNgay, useHoSo } from '@/lib/ho-so';
 import { useBoBai } from '@/lib/kho-noi-dung';
 import { datPhien } from '@/lib/phien-rut';
@@ -41,7 +42,6 @@ const THU = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm',
  */
 const RONG_LA = 48;
 const DEM = 10;
-const CAO_GON = Math.round(RONG_LA / TY_LE_LA_BAI) + DEM * 2;
 
 /** "Thứ ba, ngày 28 tháng 10" — dùng làm dòng phụ dưới tiêu đề. */
 export function ngayChuHomNay(): string {
@@ -207,6 +207,14 @@ export function LaBaiHomNay({
  * không bày một dòng chết ở đầu màn.
  */
 export function LaBaiHomNayGon() {
+  /*
+   * Trên máy tính dải này rộng cả 1170 nên mọi thứ trong nó to lên theo: lá
+   * bài 65x112, tên lá 34. Đo từ bản mẫu. Giữ cỡ của điện thoại thì dải thành
+   * một thanh dài ngoẵng với ba dòng chữ li ti nép bên trái.
+   */
+  const pc = useManPC();
+  const rongLa = pc ? 65 : RONG_LA;
+  const caoDai = Math.round(rongLa / TY_LE_LA_BAI) + (pc ? 17 : DEM) * 2;
   const { boBai, dangTai } = useBoBai();
   const [la, setLa] = useState<LaDaRut | null>(null);
 
@@ -225,14 +233,15 @@ export function LaBaiHomNayGon() {
 
   // Giữ chỗ trong lúc còn đang tải, để mấy thẻ bên dưới không nhảy một cái khi
   // lá hiện ra. Tải hỏng thì trả về rỗng hẳn — thà thiếu còn hơn một dải chết.
-  if (!la) return dangTai ? <View style={{ height: CAO_GON }} /> : null;
+  if (!la) return dangTai ? <View style={{ height: caoDai }} /> : null;
 
   return (
     <Pressable
       onPress={() => router.push('/hom-nay')}
       style={{
-        height: CAO_GON,
-        paddingHorizontal: DEM + 2,
+        height: caoDai,
+        paddingHorizontal: pc ? 36 : DEM + 2,
+        ...(pc ? { borderRadius: 18 } : null),
         // Nền sáng hơn nền thẻ thường và viền đậm hơn: đây là nút bấm duy
         // nhất nằm trên nền đen trống, không có gì quanh để tựa. Để nguyên
         // nenNhat + viền 30% thì user nhìn không ra là có viền.
@@ -240,18 +249,22 @@ export function LaBaiHomNayGon() {
         borderColor: MAU.vangVua,
       }}
       className="flex-row items-center rounded-2xl border active:opacity-60">
-      <LaBai daRut={la} rong={RONG_LA} hienNguoc={false} bongNhe />
+      <LaBai daRut={la} rong={rongLa} hienNguoc={false} bongNhe />
 
-      <View style={{ marginLeft: 12 }} className="flex-1">
+      <View style={{ marginLeft: pc ? 22 : 12 }} className="flex-1">
         {/* Nhãn mục KHÔNG dùng `Nhan` dùng chung: nó mang sẵn lề dưới 8, mà ở
             đây ba dòng phải xếp sát nhau mới vừa 104. */}
         <Text
-          style={{ fontFamily: CHU.thanDam, letterSpacing: 1.4 }}
+          style={{ fontFamily: CHU.thanDam, letterSpacing: 1.4, ...(pc ? { fontSize: 11 } : null) }}
           className="text-[10px] uppercase text-vang">
           Lá bài hôm nay
         </Text>
         <Text
-          style={{ fontFamily: CHU.thanDam, fontSize: 17, lineHeight: 22 }}
+          style={{
+            fontFamily: CHU.thanDam,
+            fontSize: pc ? 34 : 17,
+            lineHeight: pc ? 44 : 22,
+          }}
           numberOfLines={1}
           className="mt-1 text-chu-chinh">
           {la.la.tenEn}
@@ -259,7 +272,7 @@ export function LaBaiHomNayGon() {
         </Text>
         {/* Một dòng, cắt bằng ba chấm. Hai dòng là dải cao thêm 16 và vỡ mốc. */}
         <Text
-          style={{ fontFamily: CHU.than, fontSize: 12, lineHeight: 17 }}
+          style={{ fontFamily: CHU.than, fontSize: pc ? 15 : 12, lineHeight: pc ? 22 : 17 }}
           numberOfLines={1}
           className="mt-0.5 text-chu-phu">
           {la.la.tuKhoa}

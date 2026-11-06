@@ -12,8 +12,9 @@ import { DangTai } from '@/components/nen';
 import { dangHenLaBai } from '@/lib/thong-bao';
 import { NenTroiSao } from '@/components/nen-anh';
 import { ThanhTieuDe } from '@/components/thanh-tieu-de';
+import { KhungPC } from '@/components/khung-pc';
 import { CotDoc } from '@/components/luoi-pc';
-import { CAO_THANH_TAB, CHU, MAU, NEN_CHUYEN } from '@/constants/giao-dien';
+import { CAO_THANH_TAB, CHU, MAU, NEN_CHUYEN, NEN_PHANG } from '@/constants/giao-dien';
 import { useManPC } from '@/constants/khung-web';
 import { napTuHoSo } from '@/lib/ban-nhap';
 import { tachNgay, useHoSo } from '@/lib/ho-so';
@@ -64,12 +65,14 @@ export default function CaNhan() {
   const pc = useManPC();
 
   return (
-    <LinearGradient colors={NEN_CHUYEN} locations={[0, 0.45, 1]} style={{ flex: 1 }}>
+    <LinearGradient colors={pc ? NEN_PHANG : NEN_CHUYEN} locations={[0, 0.45, 1]} style={{ flex: 1 }}>
       {/* Ảnh trời sao ĐỨNG YÊN, không phải lớp sao nhấp nháy như các màn khác —
           màn này là chỗ chỉnh cài đặt, chữ nhiều và khách dừng lâu, nhấp nháy
           sau lưng chữ chỉ làm rối. Nhưng để trơ nền phẳng thì nó lạc hẳn khỏi
           phần còn lại của app, nên lấy vân ảnh ở mức chìm. */}
-      <NenTroiSao mo={0.88} />
+      {/* Máy tính không dùng ảnh nền này: nó là ảnh DỌC, trải ngang 1920 thì
+          cắt còn một dải mỏng. Khung hoa văn của `KhungPC` thay chỗ nó. */}
+      {pc ? null : <NenTroiSao mo={0.88} />}
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         {/* Máy tính đã có tên màn sáng lên trên thanh điều hướng, nên thanh
             tiêu đề nhỏ ở đây thành dòng thứ hai nói đúng một chuyện. Thay bằng
@@ -80,15 +83,15 @@ export default function CaNhan() {
           <DangTai />
         ) : (
           <ScrollView
-            contentContainerClassName={pc ? 'px-10 pt-7' : 'px-5 pt-7'}
+            contentContainerClassName={pc ? '' : 'px-5 pt-7'}
             contentContainerStyle={{
-              paddingBottom: pc ? 64 : CAO_THANH_TAB + 16 + le.bottom,
+              paddingBottom: pc ? 40 : CAO_THANH_TAB + 16 + le.bottom,
             }}>
-            <CotDoc>
+            <Boc pc={pc}>
             {pc ? (
               <Text
-                style={{ fontFamily: CHU.hoaDam, fontSize: 52, lineHeight: 60 }}
-                className="mb-8 text-chu-chinh">
+                style={{ fontFamily: CHU.hoaDam, fontSize: 64, lineHeight: 74 }}
+                className="mb-10 text-chu-chinh">
                 Cá nhân
               </Text>
             ) : null}
@@ -202,11 +205,27 @@ export default function CaNhan() {
             </Text>
 
             <DongPhienBan />
-            </CotDoc>
+            </Boc>
           </ScrollView>
         )}
       </SafeAreaView>
     </LinearGradient>
+  );
+}
+
+/**
+ * Bọc nội dung màn Cá nhân.
+ *
+ * Máy tính: khung hoa văn như mọi màn khác, rồi trong khung lại bó thêm một
+ * cột hẹp — đây là danh sách cài đặt kiểu nhãn-trái-giá-trị-phải, trải hết
+ * 1170 thì hai đầu một dòng cách nhau cả gang tay.
+ */
+function Boc({ pc, children }: { pc: boolean; children: React.ReactNode }) {
+  if (!pc) return <>{children}</>;
+  return (
+    <KhungPC>
+      <CotDoc>{children}</CotDoc>
+    </KhungPC>
   );
 }
 

@@ -43,6 +43,7 @@ import { anhSanPham, useSanPham, type SanPham } from '@/lib/san-pham';
 import { rongKhung, useManPC } from '@/constants/khung-web';
 
 export default function TrungBay() {
+  const pc = useManPC();
   const { dong, loi, dangTai } = useSanPham();
   const quanTam = useQuanTam();
 
@@ -95,11 +96,13 @@ export default function TrungBay() {
         <View>
           <Nhan>Tất cả hàng ({tatCa.length})</Nhan>
           <View className="mt-3">
-            <LuoiPC>
+            {/* Máy tính bày 4 cột ảnh-trên như bản mẫu. Thẻ ngang ảnh-nhỏ-bên-
+                trái là kiểu của màn hẹp; ở 1170 nó thành một thanh dài với
+                tấm ảnh 74px lọt thỏm. `TheNoiBat` vốn đã là thẻ ảnh-trên nên
+                dùng lại luôn, không đẻ thêm kiểu thẻ thứ ba. */}
+            <LuoiPC cot={pc ? 4 : 2}>
               {tatCa.map((s) => (
-                <OLuoi key={s.ma}>
-                  <TheDoc mon={s} />
-                </OLuoi>
+                <OLuoi key={s.ma}>{pc ? <TheNoiBat mon={s} /> : <TheDoc mon={s} />}</OLuoi>
               ))}
             </LuoiPC>
           </View>
@@ -192,7 +195,10 @@ function DaiNoiBat({ ds }: { ds: SanPham[] }) {
    * mất nghĩa: màn đã rộng sẵn, bày một món một lượt là phí hai phần ba chỗ.
    * Lề cũng rộng hơn vì `ManHinh` đổi sang `px-10` trên máy tính.
    */
-  const leMan = pc ? 40 : LE_MAN;
+  // Trên máy tính lề bằng 0: `ManHinh` không còn đệm hai bên, đệm nằm ở
+  // `KhungPC`, nên `rongKhung()` đã là đúng LÒNG khung rồi. Trừ thêm 40 nữa
+  // thì dải lệch khỏi lưới bên dưới và hở một mẩu thẻ ở mép trái.
+  const leMan = pc ? 0 : LE_MAN;
   const vua = width - leMan * 2;
   const rong = Math.max(240, pc ? (vua - KHE) / 2 : vua);
   const buoc = rong + KHE;

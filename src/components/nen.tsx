@@ -17,8 +17,9 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { ChumSaoToa } from '@/components/hieu-ung-sao';
 import { BauTroiDong } from '@/components/bau-troi-dong';
+import { KhungPC } from '@/components/khung-pc';
 import { NutQuayLai } from '@/components/nut-quay-lai';
-import { CAO_THANH_TAB, CHU, KHOI_CHUYEN, MAU, NEN_CHUYEN } from '@/constants/giao-dien';
+import { CAO_THANH_TAB, CHU, KHOI_CHUYEN, MAU, NEN_CHUYEN, NEN_PHANG } from '@/constants/giao-dien';
 import { useManPC } from '@/constants/khung-web';
 
 export function ManHinh({
@@ -26,6 +27,7 @@ export function ManHinh({
   phu,
   sauHoaVan,
   canhGiua,
+  coTieuDePC = 64,
   quayLai,
   nenPhu,
   onLamMoi,
@@ -47,6 +49,13 @@ export function ManHinh({
   sauHoaVan?: number;
   /** Căn giữa tiêu đề và dòng phụ. Mặc định căn trái như mọi màn khác. */
   canhGiua?: boolean;
+  /**
+   * Cỡ tiêu đề trên máy tính. Mặc định 64, đo từ bản mẫu.
+   *
+   * Màn Khám phá để 77: nó là cửa vào, và bản mẫu cũng cho riêng màn đó to
+   * hơn một bậc.
+   */
+  coTieuDePC?: number;
   quayLai?: boolean;
   /** Lớp ảnh nền đặt dưới nội dung, ví dụ trời sao hay khung hoa văn. */
   nenPhu?: React.ReactNode;
@@ -71,23 +80,68 @@ export function ManHinh({
   // Chừa chỗ cho thanh tab và thanh điều hướng của máy, không thì dòng cuối
   // trang nằm khuất phía dưới và cuộn hết cỡ vẫn không đọc được.
   const le = useSafeAreaInsets();
+
   /**
-   * Bản máy tính: lề rộng hơn, tiêu đề to hơn, và KHÔNG chừa chỗ thanh tab
-   * dưới vì trên máy tính điều hướng đã chuyển lên thanh trên.
+   * Bản máy tính dựng khác hẳn chứ không phải cùng bố cục phóng to.
+   *
+   * - Nền trang phẳng một màu thay cho nền chuyển sắc: khung hoa văn mới là
+   *   thứ đáng nhìn, chuyển sắc phía sau chỉ làm đục.
+   * - KHÔNG dùng `nenPhu`. Mấy ảnh đó là ảnh DỌC vẽ cho màn điện thoại; trải
+   *   ngang 1420 là méo. `KhungPC` thay chúng bằng khung cắt chín ô.
+   * - Đệm hai bên bằng 0 vì khung đã có đệm riêng, và không chừa chỗ thanh
+   *   tab dưới vì điều hướng đã lên thanh trên.
+   * - Trời sao chuyển vào TRONG khung, không thì sao rơi cả ra vùng nền đen
+   *   hai bên khung.
    */
   const pc = useManPC();
 
+  const than = (
+    <>
+      {pc ? <BauTroiDong /> : null}
+      {quayLai ? (
+        <View className="mb-4">
+          <NutQuayLai />
+        </View>
+      ) : null}
+      {tieuDe ? (
+        <Text
+          style={{
+            fontFamily: CHU.hoaDam,
+            // 38 là cỡ cho cột 480. Giữ nguyên con số đó trong khung 1420 thì
+            // tiêu đề teo lại thành một dòng chữ lạc giữa trang — đúng chỗ sếp
+            // bác ngày 06/11/2026. 64 đo từ bản mẫu.
+            fontSize: pc ? coTieuDePC : 38,
+            lineHeight: pc ? Math.round(coTieuDePC * 1.16) : 44,
+          }}
+          className={`text-chu-chinh${canhGiua ? ' text-center' : ''}`}>
+          {tieuDe}
+        </Text>
+      ) : null}
+      {phu ? (
+        <Text
+          style={{ fontFamily: CHU.than, ...(pc ? { fontSize: 15, lineHeight: 25 } : null) }}
+          className={`mt-1 text-sm leading-5 text-chu-phu${canhGiua ? ' text-center' : ''}`}>
+          {phu}
+        </Text>
+      ) : null}
+      <View className={tieuDe ? (pc ? 'mt-9' : 'mt-6') : ''}>{children}</View>
+    </>
+  );
+
   return (
-    <LinearGradient colors={NEN_CHUYEN} locations={[0, 0.45, 1]} style={{ flex: 1 }}>
-      {nenPhu}
-      <BauTroiDong />
+    <LinearGradient
+      colors={pc ? NEN_PHANG : NEN_CHUYEN}
+      locations={[0, 0.45, 1]}
+      style={{ flex: 1 }}>
+      {pc ? null : nenPhu}
+      {pc ? null : <BauTroiDong />}
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <ScrollView
           ref={cuonRef}
-          contentContainerClassName={pc ? 'px-10' : 'px-5'}
+          contentContainerClassName={pc ? '' : 'px-5'}
           contentContainerStyle={{
-            paddingTop: sauHoaVan ? Math.max(12, sauHoaVan + 8 - le.top) : 12,
-            paddingBottom: pc ? 64 : CAO_THANH_TAB + 16 + le.bottom,
+            paddingTop: pc ? 0 : sauHoaVan ? Math.max(12, sauHoaVan + 8 - le.top) : 12,
+            paddingBottom: pc ? 40 : CAO_THANH_TAB + 16 + le.bottom,
           }}
           keyboardShouldPersistTaps="handled"
           refreshControl={
@@ -101,32 +155,7 @@ export function ManHinh({
               />
             ) : undefined
           }>
-          {quayLai ? (
-            <View className="mb-4">
-              <NutQuayLai />
-            </View>
-          ) : null}
-          {tieuDe ? (
-            <Text
-              style={{
-                fontFamily: CHU.hoaDam,
-                // 38 là cỡ cho cột 480. Giữ nguyên con số đó trong khung 1180
-                // thì tiêu đề teo lại thành một dòng chữ lạc giữa trang.
-                fontSize: pc ? 52 : 38,
-                lineHeight: pc ? 60 : 44,
-              }}
-              className={`text-chu-chinh${canhGiua ? ' text-center' : ''}`}>
-              {tieuDe}
-            </Text>
-          ) : null}
-          {phu ? (
-            <Text
-              style={{ fontFamily: CHU.than }}
-              className={`mt-1 text-sm leading-5 text-chu-phu${canhGiua ? ' text-center' : ''}`}>
-              {phu}
-            </Text>
-          ) : null}
-          <View className={tieuDe ? 'mt-6' : ''}>{children}</View>
+          {pc ? <KhungPC>{than}</KhungPC> : than}
         </ScrollView>
       </SafeAreaView>
     </LinearGradient>

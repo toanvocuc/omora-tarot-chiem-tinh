@@ -25,6 +25,7 @@ import { Pressable, Text, View } from 'react-native';
 import { BieuTuongCung } from '@/components/bieu-tuong-cung';
 import { LaBaiHomNayGon, ngayChuHomNay } from '@/components/la-bai-hom-nay';
 import { LuoiPC, OLuoi } from '@/components/luoi-pc';
+import { useManPC } from '@/constants/khung-web';
 import { LuuYThamKhao, ManHinh, Nhan } from '@/components/nen';
 import { NenKhungVan, SAU_HOA_VAN } from '@/components/nen-anh';
 import { CHU, MAU } from '@/constants/giao-dien';
@@ -46,6 +47,7 @@ export default function MoDau() {
       phu={ngayChuHomNay()}
       nenPhu={<NenKhungVan />}
       sauHoaVan={SAU_HOA_VAN.van}
+      coTieuDePC={77}
       canhGiua>
       {/* Lá bài hôm nay ở đây chỉ là một dải mời bấm, bản đầy đủ nằm ở
           `/hom-nay`. Trước đây bày nguyên khối đầy đủ ở đây thì thẻ Khám phá đầu
@@ -193,15 +195,16 @@ function HuyHieu({ ma, ten }: { ma: MaCung; ten: string }) {
  * Vòng tròn dùng `nenNhatHon` chứ không phải vàng đặc: năm thẻ xếp dọc mà mỗi
  * thẻ một đốm vàng to thì cả màn thành dây đèn nháy. Vàng để dành cho nét icon.
  */
-function HuyHieuThe({ ten }: { ten: TenIcon }) {
+function HuyHieuThe({ ten, lon }: { ten: TenIcon; lon?: boolean }) {
+  const co = lon ? 52 : 44;
   return (
     <View
-      style={{ width: 44, height: 44, backgroundColor: MAU.nenNhatHon }}
+      style={{ width: co, height: co, backgroundColor: MAU.nenNhatHon }}
       className="mr-4 items-center justify-center rounded-full">
       {ten.bo === 'mci' ? (
-        <MaterialCommunityIcons name={ten.ma as never} size={22} color={MAU.vang} />
+        <MaterialCommunityIcons name={ten.ma as never} size={lon ? 26 : 22} color={MAU.vang} />
       ) : (
-        <Ionicons name={ten.ma as never} size={21} color={MAU.vang} />
+        <Ionicons name={ten.ma as never} size={lon ? 25 : 21} color={MAU.vang} />
       )}
     </View>
   );
@@ -223,18 +226,44 @@ function The({
   icon: TenIcon;
   onPress: () => void;
 }) {
+  /*
+   * Cỡ chữ trong thẻ đo từ bản mẫu: tên 23, mô tả 12,5, đệm 23 trên dưới và
+   * 24 hai bên, bo 18. Giữ nguyên cỡ của điện thoại trong khung 1420 thì thẻ
+   * rộng gấp ba mà chữ y như cũ, nhìn rỗng ruột.
+   */
+  const pc = useManPC();
   return (
     <Pressable
       onPress={onPress}
-      style={{ borderColor: MAU.vien }}
-      className="flex-row items-center justify-between rounded-2xl border bg-nen-nhat p-5 active:opacity-70">
-      <HuyHieuThe ten={icon} />
+      style={
+        pc
+          ? { borderColor: MAU.vien, borderRadius: 18, paddingVertical: 23, paddingHorizontal: 24 }
+          : { borderColor: MAU.vien }
+      }
+      className={`flex-row items-center justify-between border bg-nen-nhat active:opacity-70${
+        pc ? '' : ' rounded-2xl p-5'
+      }`}>
+      <HuyHieuThe ten={icon} lon={pc} />
       <View className="flex-1 pr-3">
         <Nhan>{nhan}</Nhan>
-        {ten ? <Text style={{ fontFamily: CHU.thanDam }} className="text-lg text-chu-chinh">{ten}</Text> : null}
-        <Text style={{ fontFamily: CHU.than }} className="mt-1 text-sm leading-5 text-chu-phu">{mo}</Text>
+        {ten ? (
+          <Text
+            style={{ fontFamily: CHU.thanDam, ...(pc ? { fontSize: 23, lineHeight: 31 } : null) }}
+            className="text-lg text-chu-chinh">
+            {ten}
+          </Text>
+        ) : null}
+        <Text
+          style={{ fontFamily: CHU.than, ...(pc ? { fontSize: 12.5, lineHeight: 20 } : null) }}
+          className="mt-1 text-sm leading-5 text-chu-phu">
+          {mo}
+        </Text>
       </View>
-      <Text style={{ fontFamily: CHU.than }} className="text-lg text-vang">›</Text>
+      <Text
+        style={{ fontFamily: CHU.than, ...(pc ? { fontSize: 22 } : null) }}
+        className="text-lg text-vang">
+        ›
+      </Text>
     </Pressable>
   );
 }

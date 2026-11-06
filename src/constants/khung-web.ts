@@ -1,38 +1,37 @@
 /**
- * Bó nội dung thành một cột trên web, và nới cột đó ra khi màn đủ rộng.
+ * Bề rộng và khung của bản web, chia hai đường hẳn: điện thoại và máy tính.
+ *
+ * ─────────────────────────────────────────────── BẢN ĐIỆN THOẠI (giữ nguyên)
  *
  * Mọi màn của app này vẽ cho bề ngang điện thoại. Mở trên màn hình máy tính
  * thì cùng bố cục ấy bị kéo ra 1900px: nút "Đăng nhập bằng Google" dài hết
- * màn, dòng chữ trải thành một vệt mỏng, ảnh nền phình méo.
+ * màn, dòng chữ trải thành một vệt mỏng, ảnh nền phình méo. Chữa bằng một cột
+ * rộng cố định căn giữa, phần còn lại để nền tối.
  *
- * Chữa bằng một cột rộng cố định căn giữa, phần còn lại để nền tối.
+ * ─────────────────────────────────────────────────────────── BẢN MÁY TÍNH
  *
- * ───────────────────────────────────────────────────────── BẢN PC
+ * Lần đầu tôi chỉ nới cột lên 1180 rồi để nguyên cỡ chữ. Sếp bác thẳng ngày
+ * 06/11/2026: trên màn 1920 nó vẫn là một hộp hẹp giữa hai mảng đen, chữ bé
+ * tí. Số đo dưới đây ĐO THẲNG TỪ BẢN MẪU, không phải tôi tự chọn:
  *
- * Cột 480 chữa được chuyện méo, nhưng trên màn 1600 thì 70% màn hình là nền
- * đen trống — user nói thẳng ngày 06/11/2026 là nhìn xấu hơn hẳn bản điện
- * thoại. Nên từ `NGUONG_PC` trở lên, cột nới ra `RONG_PC` và các màn tự xếp
- * lại thành lưới.
+ *   thanh điều hướng   trải hết cửa sổ, cao 77, lòng trong tối đa 1512
+ *   khung nội dung     cửa sổ trừ hai bên, tối đa 1420
+ *   lòng khung         1420 trừ đệm hai bên 125 = 1170 ở màn 1920
+ *   tiêu đề màn        64 (riêng màn Khám phá 77)
  *
- * ĐIỀU KIỆN KHÔNG ĐƯỢC PHÁ: dưới ngưỡng đó mọi thứ phải giống hệt như trước.
- * Web trên điện thoại và hai bản app đều KHÔNG được đổi một pixel nào —
- * user chốt vậy. Vì thế nhánh `Platform.OS !== 'web'` và nhánh hẹp giữ y
- * nguyên công thức cũ `Math.min(w, 480)`.
+ * ────────────────────────────────────────────────────────── CẠM BẪY CÒN LẠI
  *
- * CẠM BẪY đi kèm: `Dimensions.get('window').width` vẫn trả về bề rộng CỬA SỔ
- * chứ không phải bề rộng cột. Sáu chỗ trong app dùng nó để rải sao, rải lá
- * rơi, xoè bài và tính bề ngang thẻ Shop — để nguyên thì sao rơi hết ra ngoài
- * cột và thẻ Shop rộng 1900px trong một cột 480px. Vì vậy MỌI phép đo bề ngang
- * phải đi qua `rongKhung()` chứ không hỏi thẳng `Dimensions`.
+ * `Dimensions.get('window').width` trả về bề ngang CỬA SỔ chứ không phải bề
+ * ngang lòng khung. Sáu chỗ trong app dùng nó để rải sao, rải lá rơi, xoè bài
+ * và tính bề ngang thẻ Shop — để nguyên thì sao rơi hết ra ngoài khung. Vì vậy
+ * MỌI phép đo bề ngang phải đi qua `rongKhung()` chứ không hỏi thẳng
+ * `Dimensions`.
  *
- * CẠM BẪY THỨ HAI, do bản PC sinh ra: bốn chỗ gọi `rongKhung()` ở cấp module
- * (`tarot/rut`, `bau-troi-dong`, `la-roi`, và trước đây `nen-sao`) chốt cứng
- * con số lúc NẠP TRANG. Trước đây vô hại vì câu trả lời luôn là 480. Giờ nó
- * đổi theo bề ngang, nên ai kéo cửa sổ qua ngưỡng 1024 sẽ thấy sao rải theo
- * khung cũ cho tới khi tải lại trang. Chấp nhận tạm; chỗ nào sửa được bằng
- * một dòng thì đã sửa (`nen-sao` nay dùng '100%').
+ * Và bốn chỗ gọi `rongKhung()` ở CẤP MODULE (`tarot/rut`, `bau-troi-dong`,
+ * `la-roi`) chốt cứng con số lúc nạp trang. Kéo cửa sổ qua ngưỡng 1024 thì
+ * chúng còn dùng số cũ cho tới khi tải lại trang.
  *
- * Chiều CAO thì vẫn hỏi thẳng được — cột cao bằng đúng cửa sổ.
+ * Chiều CAO thì vẫn hỏi thẳng được.
  */
 
 import { Dimensions, Platform, useWindowDimensions, type ViewStyle } from 'react-native';
@@ -55,29 +54,56 @@ export const RONG_TOI_DA = 480;
  */
 export const NGUONG_PC = 1024;
 
-/**
- * Bề rộng cột trên máy tính.
- *
- * 1180 đủ cho lưới hai cột mà mỗi thẻ vẫn khoảng 570 — gần bằng một màn điện
- * thoại, nên chữ trong thẻ không phải xuống dòng kiểu khác. Rộng hơn nữa thì
- * phải nghĩ lại cỡ chữ của cả app chứ không chỉ xếp lại thẻ.
- */
-export const RONG_PC = 1180;
+/** Bề rộng tối đa của khung hoa văn trên máy tính. */
+export const RONG_PC = 1420;
+
+/** Bề rộng tối đa của lòng trong thanh điều hướng. */
+export const RONG_THANH = 1512;
 
 /** Bề ngang này có phải là máy tính không. Máy thật thì luôn luôn không. */
 export function laManPC(rongCuaSo: number): boolean {
   return Platform.OS === 'web' && rongCuaSo >= NGUONG_PC;
 }
 
-/** Trần bề rộng của cột ứng với một bề ngang cửa sổ. */
-function tranCot(rongCuaSo: number): number {
-  return laManPC(rongCuaSo) ? RONG_PC : RONG_TOI_DA;
+/** Kẹp một giá trị theo bề ngang cửa sổ, đúng cách `clamp()` của CSS. */
+function kep(it: number, theoManHinh: number, nhieu: number, rongCuaSo: number): number {
+  return Math.round(Math.min(nhieu, Math.max(it, rongCuaSo * theoManHinh)));
 }
 
-/** Bề rộng thật của khung app: web thì bó lại, máy thật thì cả màn hình. */
+/**
+ * Số đo của khung hoa văn ứng với một bề ngang cửa sổ.
+ *
+ * Để ở đây chứ không ở `components/khung-pc` vì `rongKhung()` ngay dưới cũng
+ * cần con số lòng khung — để bên kia là hai tệp nhập lẫn nhau thành vòng.
+ */
+export function soDoKhung(rongCuaSo: number) {
+  const rong = Math.min(RONG_PC, rongCuaSo - kep(28, 0.05, 88, rongCuaSo));
+  const demNgang = kep(50, 0.074, 125, rongCuaSo);
+  return {
+    rong,
+    demNgang,
+    demTren: kep(62, 0.052, 82, rongCuaSo),
+    demDuoi: kep(56, 0.054, 82, rongCuaSo),
+    /** Bề dày dải hoa văn: cạnh trên dưới, rồi cạnh trái phải. */
+    vienDoc: kep(100, 0.109, 167, rongCuaSo),
+    vienNgang: kep(73, 0.082, 126, rongCuaSo),
+    /** Lòng khung — chỗ nội dung thật sự nằm. 1170 ở màn 1920. */
+    long: Math.max(320, rong - demNgang * 2),
+  };
+}
+
+/**
+ * Bề rộng thật của chỗ nội dung nằm.
+ *
+ * Máy thật: cả màn hình. Web hẹp: cột 480. Web rộng: LÒNG khung hoa văn, chứ
+ * không phải cả cửa sổ và cũng không phải cả khung — sao rải ra ngoài lòng là
+ * chui xuống dưới dải hoa văn.
+ */
 export function rongKhung(rongCuaSo?: number): number {
   const w = rongCuaSo ?? Dimensions.get('window').width;
-  return Platform.OS === 'web' ? Math.min(w, tranCot(w)) : w;
+  if (Platform.OS !== 'web') return w;
+  if (laManPC(w)) return soDoKhung(w).long;
+  return Math.min(w, RONG_TOI_DA);
 }
 
 /**
@@ -92,23 +118,27 @@ export function useManPC(): boolean {
 }
 
 /**
- * Nền hai bên cột. Tối hơn nền app một bậc để cột nổi lên như một thiết bị
- * đặt trên mặt bàn, thay vì như một trang bị canh lề lệch.
+ * Nền ngoài khung.
+ *
+ * Bản điện thoại: tối hơn nền app một bậc để cột nổi lên như một thiết bị đặt
+ * trên mặt bàn. Bản máy tính dùng cùng màu đó làm nền cả trang.
  */
 export const NEN_NGOAI = Platform.OS === 'web' ? MAU.nenDen : MAU.nen;
 
 /**
- * Cột nội dung, đọc sống. Trên máy thật đây chỉ là `flex: 1`, không đổi gì.
+ * Khung ngoài cùng của app.
  *
- * Là hook chứ không phải hằng số vì trần cột nay đổi theo bề ngang cửa sổ.
+ * Máy thật và máy tính đều là `flex: 1`. Trên máy tính việc bó bề ngang do
+ * `components/khung-pc` lo, và thanh điều hướng thì PHẢI trải hết cửa sổ nên
+ * không được bó ở đây. Chỉ web màn hẹp mới bó thành cột 480.
  */
 export function useKhungCot(): ViewStyle {
   const { width } = useWindowDimensions();
-  if (Platform.OS !== 'web') return { flex: 1 };
+  if (Platform.OS !== 'web' || laManPC(width)) return { flex: 1 };
   return {
     flex: 1,
     width: '100%',
-    maxWidth: tranCot(width),
+    maxWidth: RONG_TOI_DA,
     alignSelf: 'center',
     overflow: 'hidden',
   };

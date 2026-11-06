@@ -24,6 +24,7 @@ import { DangTai, ManHinh, Trong } from '@/components/nen';
 import { NenChomSao } from '@/components/nen-anh';
 import { SaoKemSo } from '@/components/sao';
 import { CHU, MAU } from '@/constants/giao-dien';
+import { useManPC } from '@/constants/khung-web';
 import { useChuyenGia, type DongChuyenGia } from '@/lib/kho-noi-dung';
 import { ThongTin } from '@/app/ho-so-thay';
 
@@ -69,15 +70,93 @@ export default function DanhSachChuyenGia() {
           <ThongTin thay={dong[0]} />
         </CotDoc>
       ) : (
-        <LuoiPC>
+        <LuoiPC cot={3}>
           {dong.map((t) => (
             <OLuoi key={t.ma}>
-              <TheGon thay={t} />
+              <TheChuyenGia thay={t} />
             </OLuoi>
           ))}
         </LuoiPC>
       )}
     </ManHinh>
+  );
+}
+
+/**
+ * Chọn kiểu thẻ theo bề ngang.
+ *
+ * Điện thoại: thẻ ngang, ảnh tròn 56 bên trái — một cột hẹp thì ảnh to chiếm
+ * hết chỗ của chữ. Máy tính: ảnh lớn nằm trên, đúng bản mẫu; ở 3 cột thì mỗi
+ * thẻ rộng 377, thừa chỗ cho một tấm ảnh ra hồn.
+ */
+function TheChuyenGia({ thay }: { thay: DongChuyenGia }) {
+  const pc = useManPC();
+  return pc ? <TheAnhTren thay={thay} /> : <TheGon thay={thay} />;
+}
+
+/**
+ * Thẻ của bản máy tính: ảnh 245 cao nằm trên, rồi chuyên môn, tên, mô tả, giá.
+ *
+ * Số đo lấy từ bản mẫu: bo 15, ảnh cao 245, chuyên môn 10 chữ hoa, tên 30
+ * kiểu chữ có chân, mô tả 12, giá 14.
+ */
+function TheAnhTren({ thay }: { thay: DongChuyenGia }) {
+  return (
+    <Pressable
+      onPress={() => router.push({ pathname: '/ho-so-thay', params: { ma: thay.ma } })}
+      style={{ borderColor: MAU.vien, borderRadius: 15 }}
+      className="overflow-hidden border bg-nen-nhat active:opacity-80">
+      {thay.anh ? (
+        <Image source={{ uri: thay.anh }} style={{ width: '100%', height: 245 }} contentFit="cover" />
+      ) : (
+        <View
+          style={{ height: 245, backgroundColor: MAU.nen }}
+          className="items-center justify-center">
+          <Ionicons name="person-outline" size={44} color={MAU.chuMo} />
+        </View>
+      )}
+
+      <View className="px-5 pb-5 pt-4">
+        {thay.chuyen_sau ? (
+          <Text
+            numberOfLines={1}
+            style={{ fontFamily: CHU.thanVua, fontSize: 10, letterSpacing: 1.4, color: MAU.vangSang }}
+            className="uppercase">
+            {thay.chuyen_sau}
+          </Text>
+        ) : null}
+
+        <Text
+          style={{ fontFamily: CHU.hoaDam, fontSize: 30, lineHeight: 38 }}
+          numberOfLines={1}
+          className="mt-1.5 text-chu-chinh">
+          {thay.ten}
+        </Text>
+
+        <View className="mt-2">
+          <SaoKemSo diem={thay.diem_tb} soLuot={thay.so_danh_gia} />
+        </View>
+
+        {thay.nam_kinh_nghiem ? (
+          <Text
+            style={{ fontFamily: CHU.than, fontSize: 12, lineHeight: 19 }}
+            className="mt-2 text-chu-phu">
+            {`${thay.nam_kinh_nghiem} năm nghề`}
+            {thay.so_nguoi_da_xem
+              ? ` · ${thay.so_nguoi_da_xem.toLocaleString('vi-VN')} người đã xem`
+              : ''}
+          </Text>
+        ) : null}
+
+        {thay.gia_tu ? (
+          <Text
+            style={{ fontFamily: CHU.thanVua, fontSize: 14, color: MAU.vangSang }}
+            className="mt-3">
+            Từ {tien(thay.gia_tu)} một lượt
+          </Text>
+        ) : null}
+      </View>
+    </Pressable>
   );
 }
 

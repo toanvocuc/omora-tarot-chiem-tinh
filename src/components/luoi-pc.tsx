@@ -1,15 +1,19 @@
 /**
- * Lưới hai cột cho bản web trên máy tính, và cột dọc hẹp cho nội dung để đọc.
+ * Lưới nhiều cột cho bản web trên máy tính, và cột dọc hẹp cho nội dung để đọc.
  *
  * Gom vào một chỗ vì năm màn tab đều cần đúng hai kiểu xếp này, và mỗi màn tự
  * chế một kiểu thì chúng lệch nhau vài pixel — thứ không ai nhìn ra khi sửa
  * từng màn, nhưng bấm qua lại giữa các tab là thấy ngay.
+ *
+ * Số cột đo từ bản mẫu: thẻ Khám phá và Thực hành 2 cột, chuyên gia 3 cột,
+ * hàng trong Shop 4 cột.
  *
  * Dưới ngưỡng máy tính, cả hai thứ ở đây đều trả về đúng bố cục cũ: `LuoiPC`
  * thành một cột có khoảng cách 16, `CotDoc` thành một `View` trơn. Web trên
  * điện thoại và hai bản app KHÔNG đổi gì.
  */
 
+import { createContext, useContext } from 'react';
 import { type ViewStyle, View } from 'react-native';
 
 import { useManPC } from '@/constants/khung-web';
@@ -18,43 +22,56 @@ import { useManPC } from '@/constants/khung-web';
  * Bề rộng một cột chữ để đọc.
  *
  * Mấy màn chỉ có một dòng chữ nối tiếp một dòng chữ — danh sách cài đặt, hồ sơ
- * một người — kéo ra 1180 thì mắt phải quét ngang cả gang tay cho một dòng tám
- * chữ. Đây là chỗ cột rộng làm hại chứ không làm lợi, nên mấy màn đó bó lại.
+ * một người — kéo ra hết khung thì mắt phải quét ngang cả gang tay cho một
+ * dòng tám chữ. Đây là chỗ cột rộng làm hại chứ không làm lợi.
  */
 export const RONG_DOC = 760;
 
-/** Khoảng cách dọc giữa hai hàng trong lưới, và giữa hai thẻ khi xếp dọc. */
+/** Khoảng cách dọc giữa hai hàng, và giữa hai thẻ khi xếp dọc trên điện thoại. */
 const KHE = 16;
 
 /**
- * Bọc ngoài một nhóm thẻ. Máy tính xếp hai cột, còn lại xếp dọc như cũ.
+ * Bề rộng một ô theo số cột, tính bằng phần trăm.
  *
- * Thẻ con phải đi qua `OLuoi` để nhận bề ngang — lưới này KHÔNG tự chia cho
- * con, vì react-native-web không có `grid`, chỉ có `flexWrap`.
+ * Chừa một rãnh nhỏ giữa các cột rồi để `space-between` chia đều. KHÔNG dùng
+ * `columnGap`: bề rộng cộng thêm khe và ô cuối hàng rớt xuống hàng dưới.
  */
-export function LuoiPC({ children }: { children: React.ReactNode }) {
+const RONG_O: Record<number, `${number}%`> = { 2: '49%', 3: '32%', 4: '23.8%' };
+
+const SoCot = createContext(2);
+
+/** Bọc ngoài một nhóm thẻ. Máy tính xếp thành `cot` cột, còn lại xếp dọc. */
+export function LuoiPC({ cot = 2, children }: { cot?: number; children: React.ReactNode }) {
   const pc = useManPC();
   return (
-    <View
-      style={
-        pc
-          ? { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: KHE }
-          : { rowGap: KHE }
-      }>
-      {children}
-    </View>
+    <SoCot.Provider value={cot}>
+      <View
+        style={
+          pc
+            ? {
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                // `space-between` chia phần dư thành rãnh giữa các cột. Hàng
+                // cuối thiếu ô thì mấy ô còn lại giãn ra hai đầu — chấp nhận,
+                // vì `columnGap` số cố định cộng vào bề rộng phần trăm sẽ đẩy
+                // ô cuối hàng rớt xuống dòng dưới.
+                justifyContent: 'space-between',
+                rowGap: KHE + 4,
+              }
+            : { rowGap: KHE }
+        }>
+        {children}
+      </View>
+    </SoCot.Provider>
   );
 }
 
-/**
- * Một ô trong lưới.
- *
- * 49% chứ không phải 50%: chừa 2% làm rãnh giữa hai cột. Dùng `columnGap` thay
- * thì bề rộng cộng thêm khe và ô thứ hai rớt xuống hàng dưới.
- */
+/** Một ô trong lưới. Bề rộng lấy theo số cột mà `LuoiPC` bao ngoài đã khai. */
 export function OLuoi({ rong, children }: { rong?: boolean; children: React.ReactNode }) {
   const pc = useManPC();
-  return <View style={pc ? { width: rong ? '100%' : '49%' } : undefined}>{children}</View>;
+  const cot = useContext(SoCot);
+  if (!pc) return <View>{children}</View>;
+  return <View style={{ width: rong ? '100%' : (RONG_O[cot] ?? '49%') }}>{children}</View>;
 }
 
 /** Bó nội dung thành một cột hẹp căn giữa, chỉ trên máy tính. */
