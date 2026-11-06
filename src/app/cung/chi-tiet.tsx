@@ -9,10 +9,13 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BieuTuongCung } from '@/components/bieu-tuong-cung';
 import { HoiChuyenGia } from '@/components/hoi-chuyen-gia';
 import { ChuThan, DangTai, Khoi, LuuYThamKhao, Nhan, Nut, Trong, VanNgan } from '@/components/nen';
+import { KhungPC } from '@/components/khung-pc';
+import { NutQuayLai } from '@/components/nut-quay-lai';
 import { NenKhungCung } from '@/components/nen-anh';
 import { BauTroiDong } from '@/components/bau-troi-dong';
 import { ThanhTieuDe } from '@/components/thanh-tieu-de';
-import { CHU, MAU, NEN_CHUYEN } from '@/constants/giao-dien';
+import { CHU, MAU, NEN_CHUYEN, NEN_PHANG } from '@/constants/giao-dien';
+import { useManPC } from '@/constants/khung-web';
 import { tachNgay, useHoSo } from '@/lib/ho-so';
 import { useCung, useTuVi, type DongTuVi } from '@/lib/kho-noi-dung';
 import { layBaiTuVi, ngayChu, tuanChu } from '@/lib/tu-vi';
@@ -50,6 +53,7 @@ export default function ChiTietCung() {
   const cuaToi = ns ? cungTheoNgay(ns.ngay, ns.thang) : null;
   const cs = ma ? chiSo(ma) : null;
   const le = useSafeAreaInsets();
+  const pc = useManPC();
 
   if (!cung || !cs) {
     return (
@@ -65,15 +69,27 @@ export default function ChiTietCung() {
   }
 
   return (
-    <LinearGradient colors={NEN_CHUYEN} locations={[0, 0.45, 1]} style={{ flex: 1 }}>
-      <NenKhungCung />
+    <LinearGradient
+      colors={pc ? NEN_PHANG : NEN_CHUYEN}
+      locations={[0, 0.45, 1]}
+      style={{ flex: 1 }}>
+      {pc ? null : <NenKhungCung />}
       <BauTroiDong />
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
-        <ThanhTieuDe ten={cung.ten} />
+        {/* Máy tính giấu thanh tiêu đề nhỏ: nó trải hết cửa sổ, nằm NGOÀI khung
+            hoa văn, nên trông như một mẩu rời. Nút quay lại chuyển vào trong
+            khung — cùng cách đã làm ở màn Cá nhân. */}
+        {pc ? null : <ThanhTieuDe ten={cung.ten} />}
 
         <ScrollView
-          contentContainerClassName="px-5 pt-7"
-          contentContainerStyle={{ paddingBottom: 56 + le.bottom }}>
+          contentContainerClassName={pc ? '' : 'px-5 pt-7'}
+          contentContainerStyle={{ paddingBottom: pc ? 40 : 56 + le.bottom }}>
+          <KhungPC>
+          {pc ? (
+            <View className="mb-6 self-start">
+              <NutQuayLai />
+            </View>
+          ) : null}
           <View className="items-center">
             <View
               style={{ borderColor: MAU.vangMo }}
@@ -199,6 +215,7 @@ export default function ChiTietCung() {
           />
 
           <LuuYThamKhao />
+          </KhungPC>
         </ScrollView>
       </SafeAreaView>
     </LinearGradient>

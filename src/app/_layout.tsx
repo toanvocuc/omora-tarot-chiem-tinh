@@ -65,8 +65,6 @@ SplashScreen.preventAutoHideAsync();
 batHienKhiDangMo();
 
 export default function RootLayout() {
-  // Bề rộng cột, đọc sống: trên máy tính nó nới ra, dưới ngưỡng thì y như cũ.
-  const khungCot = useKhungCot();
   const pc = useManPC();
   const [xong, setXong] = useState(false);
   const [coPhien, setCoPhien] = useState(false);
@@ -87,6 +85,23 @@ export default function RootLayout() {
    */
   const doiNguoi = useRef(false);
   const doan = useSegments();
+
+  /**
+   * Màn này có thanh điều hướng trên không.
+   *
+   * Dùng cho CẢ hai việc: dựng thanh, và quyết định khung ngoài có trải hết
+   * cửa sổ hay bó lại thành cột. Hai thứ đó phải đi cùng nhau — màn không có
+   * thanh thì cũng không có khung hoa văn nào bó nội dung, nên phải bó ở đây.
+   */
+  const coThanhTren =
+    pc &&
+    coPhien &&
+    !laThay &&
+    !['nhap-ho-so', 'dang-nhap', 'dang-nhap-xong', 'dang-nhap-thay'].includes(doan[0] ?? '');
+
+  // Bề rộng khung ngoài. Màn có thanh trên thì trải hết cửa sổ (khung hoa văn
+  // tự bó lấy), màn không có thì bó thành cột như bản điện thoại.
+  const khungCot = useKhungCot(coThanhTren);
   const [phongXong] = useFonts({
     BeVietnamPro_400Regular,
     BeVietnamPro_500Medium,
@@ -306,7 +321,7 @@ export default function RootLayout() {
           Ba điều kiện loại trừ: chưa đăng nhập thì không có gì để điều hướng;
           đang khai hồ sơ thì thanh này là lối thoát khiến khách bỏ dở giữa
           chừng; và thầy có màn riêng `/thay`, không dùng năm tab của khách. */}
-      {pc && coPhien && !laThay && doan[0] !== 'nhap-ho-so' ? <ThanhTren /> : null}
+      {coThanhTren ? <ThanhTren /> : null}
       <Stack
         screenOptions={{
           headerShown: false,

@@ -7,10 +7,14 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { BauTroiDong } from '@/components/bau-troi-dong';
 import { MatSau } from '@/components/mat-sau';
+import { KhungPC } from '@/components/khung-pc';
+import { LuoiPC, OLuoi } from '@/components/luoi-pc';
 import { NenKhungVan, SAU_HOA_VAN } from '@/components/nen-anh';
+import { BangDoc, CotChinhPhu } from '@/components/san-bai-pc';
 import { NutQuayLai } from '@/components/nut-quay-lai';
 import { DangTai, Nut, Trong } from '@/components/nen';
-import { CHU, KHOI_CHUYEN, MAU, NEN_CHUYEN } from '@/constants/giao-dien';
+import { CHU, KHOI_CHUYEN, MAU, NEN_CHUYEN, NEN_PHANG } from '@/constants/giao-dien';
+import { useManPC } from '@/constants/khung-web';
 import { useBoBai } from '@/lib/kho-noi-dung';
 import { SO_LUOT_MOI_NGAY, useLuotRut } from '@/lib/luot-rut';
 import type { KieuTrai } from '@/lib/tarot';
@@ -61,6 +65,7 @@ export default function ChonKieuTrai() {
   const { boBai, loi, dangTai } = useBoBai();
   const [kieu, setKieu] = useState<KieuTrai>('mot-la');
   const le = useSafeAreaInsets();
+  const pc = useManPC();
   const { conLai, hetLuot, taiLai } = useLuotRut();
 
   const [cauMo, setCauMo] = useState(() => CAU_MO[Math.floor(Math.random() * CAU_MO.length)]);
@@ -75,27 +80,57 @@ export default function ChonKieuTrai() {
     }, [taiLai])
   );
 
+  const khoiNut = (
+    <>
+      <Nut
+        nhan={hetLuot ? 'Hết lượt hôm nay' : 'Bắt đầu rút bài'}
+        tat={!boBai?.length || hetLuot}
+        onPress={() => router.push({ pathname: '/tarot/rut', params: { kieu } })}
+      />
+      {hetLuot ? (
+        <Text
+          style={{ fontFamily: CHU.than, fontSize: 14, lineHeight: 22 }}
+          className="mt-3 text-center text-chu-phu">
+          Hôm nay bạn đã rút đủ {SO_LUOT_MOI_NGAY} lần. Hỏi đi hỏi lại một chuyện thì quẻ loãng
+          dần, nên mai hẵng rút tiếp. Lá bài hôm nay vẫn xem được bình thường.
+        </Text>
+      ) : (
+        <Text
+          style={{ fontFamily: CHU.than, fontSize: 13 }}
+          className="mt-3 text-center text-chu-mo">
+          Còn {conLai} trên {SO_LUOT_MOI_NGAY} lượt hôm nay
+        </Text>
+      )}
+    </>
+  );
+
   return (
-    <LinearGradient colors={NEN_CHUYEN} locations={[0, 0.45, 1]} style={{ flex: 1 }}>
-      <NenKhungVan />
+    <LinearGradient
+      colors={pc ? NEN_PHANG : NEN_CHUYEN}
+      locations={[0, 0.45, 1]}
+      style={{ flex: 1 }}>
+      {pc ? null : <NenKhungVan />}
       {/* Lớp sao động nằm trên nền, dưới nội dung. Không nhận chạm nên không
           cản khách bấm vào thẻ phía dưới. */}
       <BauTroiDong />
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <ScrollView
-          contentContainerClassName="px-5"
+          contentContainerClassName={pc ? '' : 'px-5'}
           // flexGrow để nội dung giãn đầy màn hình. Không có nó thì mọi thứ dồn
-          // lên đỉnh, chừa một mảng trống to dưới nút bắt đầu.
+          // lên đỉnh, chừa một mảng trống to dưới nút bắt đầu. Máy tính thì
+          // KHÔNG giãn: khung hoa văn phải ôm sát nội dung, giãn đầy màn là
+          // khung kéo xuống hết cửa sổ với một mảng đen rỗng ở giữa.
           contentContainerStyle={{
-            flexGrow: 1,
+            flexGrow: pc ? undefined : 1,
             // Đẩy chữ xuống dưới đường kẻ vàng của khung. Chữ "Rút bài" cũng
             // màu vàng, rơi đúng lên đường kẻ thì hai thứ cùng màu chồng nhau
             // và không đọc ra cái nào. Máy có tai thỏ thì lề trên đã đủ sâu
             // nên không cộng thêm nữa.
-            paddingTop: Math.max(16, SAU_HOA_VAN.van + 8 - le.top),
-            paddingBottom: 24 + le.bottom,
+            paddingTop: pc ? 0 : Math.max(16, SAU_HOA_VAN.van + 8 - le.top),
+            paddingBottom: pc ? 40 : 24 + le.bottom,
           }}
           keyboardShouldPersistTaps="handled">
+          <KhungPC>
           {/* Màn này từng là một thẻ tab nên không cần đường lui. Giờ nó nằm
               trong chồng màn hình, thiếu nút này là khách kẹt lại. */}
           <View className="mb-2 self-start">
@@ -124,44 +159,53 @@ export default function ChonKieuTrai() {
             </View>
           ) : null}
 
-          <View className="min-h-[20px] flex-1" />
-
-          <View className="gap-3">
-            {KIEU.map((k) => (
-              <TheKieu
-                key={k.ma}
-                ten={k.ten}
-                mo={k.mo}
-                so={k.so}
-                chon={kieu === k.ma}
-                onPress={() => setKieu(k.ma)}
-              />
-            ))}
-          </View>
-
-          <View className="min-h-[20px] flex-1" />
-
-          <View>
-            <Nut
-              nhan={hetLuot ? 'Hết lượt hôm nay' : 'Bắt đầu rút bài'}
-              tat={!boBai?.length || hetLuot}
-              onPress={() => router.push({ pathname: '/tarot/rut', params: { kieu } })}
+          {/* Khối nút bắt đầu, dùng chung cho cả hai bố cục. */}
+          {pc ? (
+            /* Máy tính: hai kiểu trải nằm cạnh nhau bên trái, nút bắt đầu và số
+               lượt còn lại gom vào cột phụ bên phải — đúng bản mẫu. Xếp dọc
+               trong khung 1170 thì mỗi thẻ thành một dải ngang dài ngoẵng với
+               tấm hình bé tí nằm giữa. */
+            <CotChinhPhu
+              chinh={
+                <LuoiPC cot={2}>
+                  {KIEU.map((k) => (
+                    <OLuoi key={k.ma}>
+                      <TheKieu
+                        ten={k.ten}
+                        mo={k.mo}
+                        so={k.so}
+                        chon={kieu === k.ma}
+                        onPress={() => setKieu(k.ma)}
+                      />
+                    </OLuoi>
+                  ))}
+                </LuoiPC>
+              }
+              phu={<BangDoc>{khoiNut}</BangDoc>}
             />
-            {hetLuot ? (
-              <Text
-                style={{ fontFamily: CHU.than, fontSize: 14, lineHeight: 22 }}
-                className="mt-3 text-center text-chu-phu">
-                Hôm nay bạn đã rút đủ {SO_LUOT_MOI_NGAY} lần. Hỏi đi hỏi lại một chuyện thì quẻ
-                loãng dần, nên mai hẵng rút tiếp. Lá bài hôm nay vẫn xem được bình thường.
-              </Text>
-            ) : (
-              <Text
-                style={{ fontFamily: CHU.than, fontSize: 13 }}
-                className="mt-3 text-center text-chu-mo">
-                Còn {conLai} trên {SO_LUOT_MOI_NGAY} lượt hôm nay
-              </Text>
-            )}
-          </View>
+          ) : (
+            /* Điện thoại: NGUYÊN bố cục cũ — hai thanh giãn đẩy thẻ vào giữa
+               màn và ghim nút xuống đáy. Gộp chung với nhánh trên là mất thanh
+               giãn thứ hai và dòng số lượt bị cụt ở mép dưới. */
+            <>
+              <View className="min-h-[20px] flex-1" />
+              <View className="gap-3">
+                {KIEU.map((k) => (
+                  <TheKieu
+                    key={k.ma}
+                    ten={k.ten}
+                    mo={k.mo}
+                    so={k.so}
+                    chon={kieu === k.ma}
+                    onPress={() => setKieu(k.ma)}
+                  />
+                ))}
+              </View>
+              <View className="min-h-[20px] flex-1" />
+              <View>{khoiNut}</View>
+            </>
+          )}
+          </KhungPC>
         </ScrollView>
       </SafeAreaView>
     </LinearGradient>

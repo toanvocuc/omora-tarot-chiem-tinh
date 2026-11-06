@@ -180,3 +180,28 @@ export function ThanhThe({
     </View>
   );
 }
+
+
+/**
+ * Cột chính co giãn, cột phụ rộng cố định 310 — bản mẫu gọi là `main-aside`.
+ *
+ * Khác `HaiCot` ở chỗ cột phụ KHÔNG co: nó chứa nút bấm và vài dòng số, rộng
+ * hơn thì chữ loãng, hẹp hơn thì nút xuống dòng.
+ */
+export function CotChinhPhu({ chinh, phu }: { chinh: React.ReactNode; phu: React.ReactNode }) {
+  const pc = useManPC();
+  if (!pc) {
+    return (
+      <View>
+        {chinh}
+        <View className="mt-6">{phu}</View>
+      </View>
+    );
+  }
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 24 }}>
+      <View style={{ flex: 1 }}>{chinh}</View>
+      <View style={{ width: 310 }}>{phu}</View>
+    </View>
+  );
+}

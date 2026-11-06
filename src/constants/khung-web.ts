@@ -128,13 +128,18 @@ export const NEN_NGOAI = Platform.OS === 'web' ? MAU.nenDen : MAU.nen;
 /**
  * Khung ngoài cùng của app.
  *
- * Máy thật và máy tính đều là `flex: 1`. Trên máy tính việc bó bề ngang do
- * `components/khung-pc` lo, và thanh điều hướng thì PHẢI trải hết cửa sổ nên
- * không được bó ở đây. Chỉ web màn hẹp mới bó thành cột 480.
+ * Máy thật luôn là `flex: 1`. Trên máy tính, màn nào có thanh điều hướng thì
+ * cũng `flex: 1` — việc bó bề ngang giao cho `components/khung-pc`, và thanh
+ * điều hướng thì PHẢI trải hết cửa sổ nên không được bó ở đây.
+ *
+ * `rongHet = false` cho mấy màn KHÔNG có thanh trên: đăng nhập và luồng nhập
+ * hồ sơ. Chúng tự dựng nền riêng, không đi qua `ManHinh`, nên không có khung
+ * hoa văn nào bó lại — thả `flex: 1` là nút "Đăng nhập bằng Google" dài hết
+ * 1920 và chữ trải thành một vệt mỏng, đúng cảnh cột 480 sinh ra để chữa.
  */
-export function useKhungCot(): ViewStyle {
+export function useKhungCot(rongHet = true): ViewStyle {
   const { width } = useWindowDimensions();
-  if (Platform.OS !== 'web' || laManPC(width)) return { flex: 1 };
+  if (Platform.OS !== 'web' || (laManPC(width) && rongHet)) return { flex: 1 };
   return {
     flex: 1,
     width: '100%',
