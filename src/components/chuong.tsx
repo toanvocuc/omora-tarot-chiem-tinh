@@ -42,7 +42,7 @@ import { CAO_THANH_TREN, CHU, MAU } from '@/constants/giao-dien';
 import { luc, useHopThongBao, type ThongBao } from '@/lib/hop-thong-bao';
 import { ngheThongBaoToi } from '@/lib/tra-loi-thong-bao';
 
-import { RONG_PC, rongKhung } from '@/constants/khung-web';
+import { RONG_THANH, rongKhung } from '@/constants/khung-web';
 
 /**
  * Lúc hộp thông báo được mở, tính bằng mili giây.
@@ -292,7 +292,14 @@ export function Chuong({ tren }: { tren?: boolean }) {
    * cửa sổ chứ không nằm trong cột, nên phải tự cộng lại nửa khoảng trống hai
    * bên — để `inset-x-3` như bản điện thoại thì hộp rộng gần 1600px.
    */
-  const leCot = Math.max(0, (rongCuaSo - RONG_PC) / 2);
+  const leCot = (() => {
+    // Mép phải lòng thanh điều hướng — chính là mép phải của nút chuông.
+    // Thanh rộng tối đa `RONG_THANH` căn giữa, đệm trong `clamp(26,4.3vw,72)`.
+    // Trước đây chỗ này canh theo bề rộng KHUNG nội dung, mà khung và thanh
+    // rộng khác nhau, nên hộp lệch khỏi nút chuông hơn 100px ở màn 1600.
+    const dem = Math.round(Math.min(72, Math.max(26, rongCuaSo * 0.043)));
+    return Math.max(0, (rongCuaSo - RONG_THANH) / 2) + dem;
+  })();
 
   return (
     <>
@@ -352,7 +359,7 @@ export function Chuong({ tren }: { tren?: boolean }) {
                   borderColor: MAU.vang,
                   backgroundColor: MAU.nenDen,
                   top: CAO_THANH_TREN + 8,
-                  right: leCot + 12,
+                  right: leCot,
                   width: 400,
                 }
               : { borderColor: MAU.vang, backgroundColor: MAU.nenDen, top: le.top + 56 }
