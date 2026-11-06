@@ -6,15 +6,28 @@ import { HoiChuyenGia } from '@/components/hoi-chuyen-gia';
 import { LaBai } from '@/components/la-bai';
 import { ChuThan, DangTai, Khoi, LuuYThamKhao, ManHinh, Nhan, Nut, Trong } from '@/components/nen';
 import { NenKhungVan, SAU_HOA_VAN } from '@/components/nen-anh';
-import { CHU } from '@/constants/giao-dien';
+import { BangDoc, HaiCot, SanBai, ThanhThe } from '@/components/san-bai-pc';
+import { CHU, MAU } from '@/constants/giao-dien';
+import { useManPC } from '@/constants/khung-web';
 import { danhDauDaGhi, usePhien } from '@/lib/phien-rut';
 import { ghiSuKien } from '@/lib/su-kien';
 import { maNguoiDung, supabase } from '@/lib/supabase';
 import { yNghia } from '@/lib/tarot';
 
+/** Bốn mục của bảng đọc, đúng thứ tự bản mẫu. */
+const MUC_DOC = ['Ý nghĩa', 'Tình cảm', 'Công việc', 'Lời khuyên'] as const;
+
 export default function KetQua() {
   const { phien, dangNap } = usePhien();
   const [dangXem, setDangXem] = useState(0);
+  /*
+   * Mục đang mở trong bảng đọc — CHỈ bản máy tính dùng.
+   *
+   * Trên điện thoại bốn mục xếp thành bốn khối đọc một mạch. Đổi bản đó sang
+   * thẻ bấm là bắt khách bấm thêm ba lần cho cùng chừng ấy chữ.
+   */
+  const [mucDoc, datMucDoc] = useState(0);
+  const pc = useManPC();
 
   // Theo `phien` chứ không chạy đúng một lần lúc dựng: nạp lại trang thì phiên
   // còn đang đọc dưới ổ đĩa, lần dựng đầu chưa có gì để ghi.
@@ -74,6 +87,80 @@ export default function KetQua() {
 
   const nhieuLa = phien.cacLa.length > 1;
   const dang = phien.cacLa[dangXem];
+  const tenLa = `${dang.la.tenEn}${dang.nguoc ? ' (ngược)' : ''}`;
+  const noiDung = [yNghia(dang), dang.la.tinhCam, dang.la.congViec, dang.la.loiKhuyen];
+
+  /* ───────────────────────── BẢN MÁY TÍNH ─────────────────────────
+   *
+   * Hai cột như bản mẫu: sân bài bên trái, bảng đọc bên phải. Tiêu đề màn là
+   * TÊN LÁ chứ không phải "Ba lá của bạn" — bản mẫu đặt tên lá làm tiêu đề
+   * lớn, và với một màn chỉ nói về một lá thì đó là cái đáng đọc trước.
+   */
+  if (pc) {
+    return (
+      <ManHinh quayLai tieuDe={tenLa} phu={dang.la.tuKhoa}>
+        <HaiCot
+          trai={
+            <SanBai>
+              {phien.cacLa.map((l, i) => (
+                <Pressable
+                  key={l.la.ma}
+                  onPress={() => {
+                    setDangXem(i);
+                    datMucDoc(0);
+                  }}
+                  disabled={!nhieuLa}
+                  style={{
+                    opacity: i === dangXem ? 1 : 0.5,
+                    borderWidth: 1,
+                    borderColor: i === dangXem ? MAU.vangVua : 'transparent',
+                    borderRadius: 10,
+                    padding: 5,
+                  }}
+                  className="active:opacity-80">
+                  <LaBai daRut={l} rong={154} nhan={nhieuLa} />
+                </Pressable>
+              ))}
+            </SanBai>
+          }
+          phai={
+            <BangDoc>
+              {nhieuLa ? <Nhan>{dang.viTri}</Nhan> : null}
+              <Text
+                style={{ fontFamily: CHU.hoaDam, fontSize: 31, lineHeight: 39 }}
+                className="text-chu-chinh">
+                {tenLa}
+              </Text>
+              <Text
+                style={{ fontFamily: CHU.thanDam, letterSpacing: 1.8 }}
+                className="mb-6 mt-1.5 text-[11px] uppercase text-vang">
+                {dang.la.tuKhoa}
+              </Text>
+
+              <ThanhThe cac={MUC_DOC} dang={mucDoc} doi={datMucDoc} />
+              <ChuThan>{noiDung[mucDoc]}</ChuThan>
+
+              <View className="mt-7 gap-3">
+                <Nut
+                  nhan="Lưu ảnh"
+                  onPress={() =>
+                    router.push({ pathname: '/chia-se', params: { la: String(dangXem) } })
+                  }
+                />
+                <Nut nhan="Rút lại" kieu="vien" onPress={() => router.replace('/rut-bai')} />
+              </View>
+            </BangDoc>
+          }
+        />
+
+        <HoiChuyenGia
+          manHinh="tarot"
+          loiMoi={`Muốn hiểu sâu hơn về ${dang.la.tenEn}? Bạn có thể nhắn chuyên gia để cùng nhìn sâu hơn vào câu chuyện riêng.`}
+        />
+        <LuuYThamKhao />
+      </ManHinh>
+    );
+  }
 
   return (
     <ManHinh

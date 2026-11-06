@@ -19,6 +19,7 @@ import { HoiChuyenGia } from '@/components/hoi-chuyen-gia';
 import { LaBai } from '@/components/la-bai';
 import { ChuThan, DangTai, Khoi, Nhan, Nut, Trong, VanNgan } from '@/components/nen';
 import { CHU, MAU, TY_LE_LA_BAI } from '@/constants/giao-dien';
+import { BangDoc, HaiCot, SanBai, ThanhThe } from '@/components/san-bai-pc';
 import { useManPC } from '@/constants/khung-web';
 import { tachNgay, useHoSo } from '@/lib/ho-so';
 import { useBoBai } from '@/lib/kho-noi-dung';
@@ -49,6 +50,9 @@ export function ngayChuHomNay(): string {
   return `${THU[d.getDay()]}, ngày ${d.getDate()} tháng ${d.getMonth() + 1}`;
 }
 
+/** Bốn mục của bảng đọc trên máy tính, đúng thứ tự bản mẫu. */
+const MUC_DOC = ['Ý nghĩa', 'Tình cảm', 'Công việc', 'Lời khuyên'] as const;
+
 export function LaBaiHomNay({
   manHinh,
   hoiChuyenGia = false,
@@ -58,10 +62,13 @@ export function LaBaiHomNay({
   /** Khối mời đặt tư vấn. Màn mở đầu đã có thẻ riêng nên tắt, kẻo nhắc hai lần. */
   hoiChuyenGia?: boolean;
 }) {
+  const pc = useManPC();
   const { boBai, loi, dangTai } = useBoBai();
   const { hoSo } = useHoSo();
   const [la, setLa] = useState<LaDaRut | null>(null);
   const [khongDocDuoc, setKhongDocDuoc] = useState(false);
+  /** Mục đang mở trong bảng đọc — chỉ bản máy tính dùng. */
+  const [mucDoc, datMucDoc] = useState(0);
 
   /**
    * Lá bài của ngày tính từ mã người dùng, nên phải hỏi mã trước.
@@ -118,7 +125,74 @@ export function LaBaiHomNay({
         </View>
       ) : null}
 
-      {la ? (
+      {/* ───────── BẢN MÁY TÍNH: hai cột, chung bố cục với màn kết quả ───────── */}
+      {la && pc ? (
+        <View>
+          <HaiCot
+            trai={
+              <SanBai>
+                <LaBai daRut={la} rong={154} />
+              </SanBai>
+            }
+            phai={
+              <BangDoc>
+                <Text
+                  style={{ fontFamily: CHU.hoaDam, fontSize: 31, lineHeight: 39 }}
+                  className="text-chu-chinh">
+                  {la.la.tenEn}
+                </Text>
+                <Text
+                  style={{ fontFamily: CHU.thanDam, letterSpacing: 1.8 }}
+                  className="mb-6 mt-1.5 text-[11px] uppercase text-vang">
+                  {la.la.tuKhoa}
+                </Text>
+
+                <ThanhThe cac={MUC_DOC} dang={mucDoc} doi={datMucDoc} />
+                <ChuThan>
+                  {[la.la.yNghiaXuoi, la.la.tinhCam, la.la.congViec, la.la.loiKhuyen][mucDoc]}
+                </ChuThan>
+
+                {cung ? (
+                  <Pressable
+                    onPress={() =>
+                      router.push({ pathname: '/cung/chi-tiet', params: { ma: maCung } })
+                    }
+                    style={{ borderColor: MAU.vien }}
+                    className="mt-7 flex-row items-center justify-between rounded-2xl border bg-nen p-4 active:opacity-70">
+                    <View className="flex-1 pr-3">
+                      <Nhan>Cung của bạn</Nhan>
+                      <Text style={{ fontFamily: CHU.than }} className="text-base text-chu-chinh">
+                        {cung.ten} · xem tử vi hôm nay
+                      </Text>
+                    </View>
+                    <Text className="text-lg text-vang">›</Text>
+                  </Pressable>
+                ) : null}
+
+                <View className="mt-4">
+                  <Nut
+                    nhan="Lưu ảnh để chia sẻ"
+                    kieu="vien"
+                    onPress={() => {
+                      datPhien([la], false);
+                      router.push('/chia-se');
+                    }}
+                  />
+                </View>
+              </BangDoc>
+            }
+          />
+
+          {hoiChuyenGia ? (
+            <HoiChuyenGia
+              manHinh={manHinh}
+              loiMoi={`Lá ${la.la.tenEn} hôm nay ứng vào chuyện gì của bạn? Nhắn cho chuyên gia để hỏi cho rõ.`}
+            />
+          ) : null}
+        </View>
+      ) : null}
+
+      {la && !pc ? (
         <View>
           <View className="items-center">
             <LaBai daRut={la} rong={210} />
