@@ -101,6 +101,17 @@ export function soDoKhung(rongCuaSo: number) {
      */
     vienNgang: kep(96, 0.107, 163, rongCuaSo),
     vienDoc: Math.round(kep(96, 0.107, 163, rongCuaSo) * 1.3333),
+    /**
+     * Chiều cao dải che ở mép trên và mép dưới.
+     *
+     * Dải hoa văn GIỮA mép trên bị `border-image` kéo ngang 1,3 lần trong khi
+     * nén dọc còn 0,39 — tức méo gấp hơn ba lần, và ngôi sao ở giữa bẹt ra
+     * thành một vệt. Bản mẫu không chữa chỗ đó mà CHE nó: phủ một dải đen từ
+     * mép hoa văn bên này sang mép bên kia, rồi dán lên giữa một mẩu ảnh cắt
+     * ra ở đúng tỷ lệ gốc. Xem `MuKhung` trong `components/khung-pc`.
+     */
+    muTren: kep(32, 0.032, 48, rongCuaSo),
+    muDuoi: kep(30, 0.029, 44, rongCuaSo),
     /** Lòng khung — chỗ nội dung thật sự nằm. 1170 ở màn 1920. */
     long: Math.max(320, rong - demNgang * 2),
   };

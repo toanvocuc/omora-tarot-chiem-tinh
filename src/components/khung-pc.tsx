@@ -28,7 +28,6 @@
 
 import { Platform, useWindowDimensions, View } from 'react-native';
 
-import { MAU } from '@/constants/giao-dien';
 import { soDoKhung, useManPC } from '@/constants/khung-web';
 
 /**
@@ -48,6 +47,16 @@ import { soDoKhung, useManPC } from '@/constants/khung-web';
  * Chép tệp mới vào `public/` thì nhớ chép cả ở kho công khai.
  */
 const ANH_KHUNG = '/khung-hoa-van.jpg';
+
+/**
+ * Đen TUYỆT ĐỐI, không phải `MAU.nenDen`.
+ *
+ * Nền khung và dải che phải cùng một màu với ruột tấm `khung-hoa-van.jpg` —
+ * ảnh đó là nét vàng trên nền đen thuần. Dùng `MAU.nenDen` (#08060C) thì dải
+ * che sáng hơn ruột ảnh đúng ba bậc, đủ để nổi lên thành hai hình chữ nhật
+ * hai bên ngôi sao. Bản mẫu cũng dùng #000 ở cả hai chỗ.
+ */
+const DEN = '#000';
 
 /**
  * Lớp hoa văn, nằm dưới nội dung.
@@ -78,6 +87,76 @@ function HoaVan({ doc, ngang }: { doc: number; ngang: number }) {
 }
 
 /**
+ * Dải che ở mép trên hoặc mép dưới, có mẩu hoa văn đúng tỷ lệ ở giữa.
+ *
+ * ─────────────────────────── VÌ SAO PHẢI CHE
+ *
+ * `border-image` cắt chín ô, nên bốn GÓC giữ đúng hình. Nhưng bốn CẠNH vẫn
+ * bị kéo theo chiều của chúng: mẩu giữa mép trên rộng 840 điểm ảnh gốc bị
+ * kéo ra 1094 trong khi cao 560 bị nén còn 217 — méo gấp hơn ba lần, và ngôi
+ * sao ở giữa cạnh bẹt thành một vệt. Sếp chỉ đúng chỗ đó ngày 07/11/2026.
+ *
+ * Bản mẫu không chữa, mà CHE: một dải đen trải từ mép hoa văn bên này sang
+ * bên kia, rồi dán lên giữa một mẩu ảnh cắt ở đúng tỷ lệ gốc.
+ *
+ * `o` và `cao` là khung cắt trong ảnh 1680x2520, lấy nguyên từ hai thẻ
+ * `viewBox` của bản mẫu: mép trên 420,61 rộng 840 cao 150; mép dưới 420,2315
+ * rộng 840 cao 140.
+ */
+function MuKhung({
+  ngang,
+  cach,
+  cao,
+  oY,
+  oCao,
+  duoi,
+}: {
+  /** Dải thụt vào hai bên bấy nhiêu — đúng bề dày hoa văn cạnh bên. */
+  ngang: number;
+  /** Cách mép trên (hoặc mép dưới) bấy nhiêu. */
+  cach: number;
+  /** Chiều cao dải. */
+  cao: number;
+  /** Mẩu ảnh: toạ độ Y và chiều cao trong ảnh gốc 1680x2520. */
+  oY: number;
+  oCao: number;
+  duoi?: boolean;
+}) {
+  if (Platform.OS !== 'web') return null;
+  // Mẩu ảnh phóng vừa chiều cao dải, giữ nguyên tỷ lệ ngang-dọc.
+  const tiLe = cao / oCao;
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: 'absolute',
+        left: ngang,
+        right: ngang,
+        [duoi ? 'bottom' : 'top']: cach,
+        height: cao,
+        background: DEN,
+        overflow: 'hidden',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        pointerEvents: 'none',
+      }}>
+      <div
+        style={{
+          height: cao,
+          width: cao * (840 / oCao),
+          maxWidth: '70%',
+          backgroundImage: `url(${ANH_KHUNG})`,
+          backgroundSize: `${tiLe * 1680}px ${tiLe * 2520}px`,
+          backgroundPosition: `-${tiLe * 420}px -${tiLe * oY}px`,
+          backgroundRepeat: 'no-repeat',
+        }}
+      />
+    </div>
+  );
+}
+
+/**
  * Bọc nội dung một màn vào khung hoa văn. Ngoài máy tính thì trả nguyên con.
  *
  * Mọi màn trên máy tính đều dùng CHUNG khung này, giống hệt bản mẫu — kể cả
@@ -97,12 +176,27 @@ export function KhungPC({ children }: { children: React.ReactNode }) {
         width: d.rong,
         alignSelf: 'center',
         marginTop: 18,
-        backgroundColor: MAU.nenDen,
+        backgroundColor: DEN,
         paddingTop: d.demTren,
         paddingBottom: d.demDuoi,
         paddingHorizontal: d.demNgang,
       }}>
       <HoaVan doc={d.vienDoc} ngang={d.vienNgang} />
+      <MuKhung
+        ngang={d.vienNgang}
+        cach={Math.round(d.vienNgang * 0.14)}
+        cao={d.muTren}
+        oY={61}
+        oCao={150}
+      />
+      <MuKhung
+        ngang={d.vienNgang}
+        cach={Math.round(d.vienNgang * 0.14)}
+        cao={d.muDuoi}
+        oY={2315}
+        oCao={140}
+        duoi
+      />
       {children}
     </View>
   );
