@@ -39,10 +39,9 @@ import {
   mocVuaCham,
   ngayHomNay,
   phutTrongTuan,
-  nangLuongConLai,
   tongKetTuan,
   tuoiCay,
-  useDaTuoi,
+  useCay,
   useThucHanh,
   type BuoiThucHanh,
   type LoaiThucHanh,
@@ -50,7 +49,7 @@ import {
 
 export default function ThucHanh() {
   const buoi = useThucHanh();
-  const daTuoi = useDaTuoi();
+  const cay = useCay();
   const chuoi = chuoiNgay(buoi);
   const phut = phutTrongTuan(buoi);
   const xong = daLamHomNay(buoi);
@@ -75,11 +74,7 @@ export default function ThucHanh() {
             phải cuộn qua cái cây cao nửa màn mới thấy con số chuỗi ngày. */}
         <LuoiPC>
           <OLuoi>
-            <CayCuaBan
-              daTuoi={daTuoi}
-              conLai={nangLuongConLai(buoi, daTuoi)}
-              tuoi={() => tuoiCay()}
-            />
+            <CayCuaBan daTuoi={cay.daTuoi} conLai={cay.conLai} tuoi={() => tuoiCay()} />
           </OLuoi>
           <OLuoi>
             <ChuoiNgay chuoi={chuoi} phut={phut} ngay={bayNgayQua(buoi)} />

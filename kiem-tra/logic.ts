@@ -39,6 +39,14 @@ import { cauThieu, thieuHoSo } from '../src/lib/ho-so-thieu.ts';
 import { donDuocDon, maDonDuocDon, tachDonGhim } from '../src/lib/don-loc.ts';
 import { docLoi, laKhachTuChoi, laTrungDanhTinh, layMa as layMaTraVe } from '../src/lib/duong-tra-ve.ts';
 import { quyetDinh } from '../src/lib/chu-du-lieu.ts';
+import {
+  giaiDoanCay,
+  nangLuongConLai,
+  nangLuongConLaiCoMayChu,
+  nangLuongDaKiem,
+  nangLuongMotBuoi,
+  type BuoiThucHanh,
+} from '../src/lib/tinh-thuc-hanh.ts';
 
 let loi = 0;
 function kiem(ten: string, thuc: unknown, mong: unknown) {
@@ -651,6 +659,52 @@ console.log('\n--- du lieu duoi may buoc theo nguoi ---');
 
   // Day moi that su la may sang tay nguoi khac.
   kiem('nguoi khac dang nhap thi xoa', quyetDinh(A, B), 'xoa');
+}
+
+console.log('\n--- dong bo cay thuc hanh voi may chu ---');
+{
+  let dem = 0;
+  const b = (ngay: string, phut: number): BuoiThucHanh => ({
+    ma: `b${(dem += 1)}`,
+    ngay,
+    loai: 'ngoi-yen',
+    phut,
+  });
+
+  // Ngoi 20 phut cho 10 nang luong: phut/2, chan tren la 10.
+  kiem('mot buoi 20 phut cho 10', nangLuongMotBuoi(b('2026-11-01', 20)), 10);
+
+  const baNgay = [b('2026-11-01', 20), b('2026-11-02', 20), b('2026-11-03', 20)];
+  kiem('ba ngay moi ngay 10', nangLuongDaKiem(baNgay), 30);
+
+  // May chua tung dong bo thi hai moc deu 0, va cong thuc moi phai ra DUNG
+  // cong thuc cu. Nho the ma khong phai re nhanh theo chuyen co mang hay khong.
+  kiem(
+    'chua dong bo thi giong cong thuc cu',
+    nangLuongConLaiCoMayChu(0, 0, baNgay, 10),
+    nangLuongConLai(baNgay, 10)
+  );
+
+  // Da day het 30 len may chu, va may chu cong ca phan ben web nen bao 200.
+  // Da tuoi 120. Con lai phai tinh theo so cua MAY CHU, khong phai theo danh
+  // sach buoi duoi may nay.
+  kiem('lay so cua may chu', nangLuongConLaiCoMayChu(200, 30, baNgay, 120), 80);
+
+  // Vua ngoi thien xong luc mat mang: buoi moi chua day len duoc. Phai tieu
+  // duoc NGAY, khong doi toi luot dong bo sau.
+  const themMot = [...baNgay, b('2026-11-04', 20)];
+  kiem('buoi chua day len van tieu duoc', nangLuongConLaiCoMayChu(200, 30, themMot, 120), 90);
+
+  // Danh sach buoi bi cat con TOI_DA dong gan nhat, nen tong dem lai duoc co
+  // the TUT xuong duoi tong da tuoi. Khong duoc ra so am.
+  kiem('danh sach bi cat thi khong am', nangLuongConLaiCoMayChu(0, 0, baNgay, 500), 0);
+  kiem('moc lon hon tong thi khong am', nangLuongConLaiCoMayChu(100, 999, baNgay, 100), 0);
+
+  // Dung hai bac user nhac ngay 2026-11-08: app bao Cay mam, web bao Cay non.
+  kiem('tuoi 30 la cay mam', giaiDoanCay(30).muc, 2);
+  kiem('tuoi 90 la cay non', giaiDoanCay(90).muc, 3);
+  // Lan dong bo dau cong hai ben lai, nen cay nhay len chu khong tut xuong.
+  kiem('cong hai ben thi khong tut bac', giaiDoanCay(30 + 90).muc, 3);
 }
 
 console.log(loi === 0 ? '\n==> TAT CA DEU DUNG' : `\n==> CO ${loi} CHO SAI`);

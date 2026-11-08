@@ -305,9 +305,38 @@ export function nangLuongDaKiem(buoi: BuoiThucHanh[]): number {
   return cacNgay.reduce((t, n) => t + nangLuongTrongNgay(buoi, n), 0);
 }
 
-/** Năng lượng còn lại để tiêu. */
+/** Năng lượng còn lại để tiêu, khi chỉ có một máy. */
 export function nangLuongConLai(buoi: BuoiThucHanh[], daTuoi: number): number {
   return Math.max(0, nangLuongDaKiem(buoi) - daTuoi);
+}
+
+/**
+ * Năng lượng còn lại khi cây đã đồng bộ với máy chủ.
+ *
+ * ───────────────────────────────────────────────── VÌ SAO KHÔNG CHỈ LẤY MỘT SỐ
+ *
+ * Máy chủ giữ tổng đã kiếm của MỌI máy, nhưng chỉ tới lần đồng bộ gần nhất.
+ * Buổi vừa thực hành xong lúc đang mất mạng thì chưa có trên đó. Chỉ đọc số
+ * máy chủ là khách ngồi thiền xong mà túi năng lượng không nhích — nhìn y như
+ * app ăn mất buổi vừa rồi.
+ *
+ * Nên cộng thêm phần máy này kiếm được mà chưa đẩy lên: `daKiem - daGui`.
+ *
+ * Công thức này cũng đúng cho máy CHƯA từng đồng bộ, lúc `kiemTrenMay` và
+ * `daGui` đều là 0 — khi đó nó rút gọn về đúng `nangLuongConLai` ở trên. Nhờ
+ * vậy chỉ cần một đường tính, không phải rẽ nhánh theo chuyện có mạng hay không.
+ *
+ * @param kiemTrenMay tổng đã kiếm theo máy chủ
+ * @param daGui       phần tổng đã kiếm mà máy NÀY đã đẩy lên
+ */
+export function nangLuongConLaiCoMayChu(
+  kiemTrenMay: number,
+  daGui: number,
+  buoi: BuoiThucHanh[],
+  daTuoi: number
+): number {
+  const chuaGui = Math.max(0, nangLuongDaKiem(buoi) - daGui);
+  return Math.max(0, kiemTrenMay + chuaGui - daTuoi);
 }
 
 /** Mỗi lần tưới tốn chừng này, và cho cây đúng chừng đó điểm lớn. */
