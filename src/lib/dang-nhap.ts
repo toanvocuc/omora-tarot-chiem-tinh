@@ -18,6 +18,7 @@
 
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
+import { Platform } from 'react-native';
 
 import {
   docLoi,
@@ -53,6 +54,95 @@ const TEN: Record<NhaCungCap, string> = { google: 'Google', apple: 'Apple' };
  */
 export function duongQuayVe(): string {
   return Linking.createURL('dang-nhap-xong');
+}
+
+/**
+ * Ô nhớ chỗ khách đang đứng trước khi trình duyệt rời trang.
+ *
+ * `sessionStorage` chứ không `localStorage`: nó chết theo tab, nên một lượt
+ * đăng nhập bỏ dở không để lại rác cho lần mở sau.
+ */
+const KHOA_VE = 'omora-oauth-quay-ve';
+
+type ChoVe = { duong: string; gan: boolean };
+
+function nhoChoVe(gan: boolean) {
+  try {
+    const duong = `${window.location.pathname}${window.location.search}`;
+    window.sessionStorage.setItem(KHOA_VE, JSON.stringify({ duong, gan }));
+  } catch {
+    // Không ghi được thì lát nữa quay về trang chủ. Mất chỗ đứng, không mất gì khác.
+  }
+}
+
+/** Đọc rồi XOÁ luôn: một lượt quay về chỉ dùng được một lần. */
+function layChoVe(): ChoVe {
+  try {
+    const t = window.sessionStorage.getItem(KHOA_VE);
+    window.sessionStorage.removeItem(KHOA_VE);
+    if (t) {
+      const d = JSON.parse(t);
+      if (d && typeof d.duong === 'string') return { duong: d.duong, gan: Boolean(d.gan) };
+    }
+  } catch {
+    // Hỏng thì coi như không nhớ gì.
+  }
+  return { duong: '/', gan: false };
+}
+
+/** Lượt quay về trên web kết thúc ra sao. */
+export type KetQuaVe =
+  /** Địa chỉ này không mang mã đăng nhập nào — chỉ là ai đó mở thẳng vào. */
+  | { kieu: 'khong-phai' }
+  | { kieu: 'xong'; duong: string; gan: boolean }
+  | { kieu: 'huy'; duong: string }
+  | { kieu: 'loi'; loi: string; duong: string };
+
+/**
+ * Đóng nốt vòng OAuth trên web, sau khi trình duyệt quay về cùng một tab.
+ *
+ * ────────────────────────────────── VÌ SAO PHẦN NÀY KHÔNG NẰM Ở `chayOAuth`
+ *
+ * Trên máy thật, `chayOAuth` mở trình duyệt rồi NGỒI ĐỢI trong cùng một tiến
+ * trình, nên nó tự đổi mã lấy thẻ được. Trên web thì khác hẳn: cả trang bị
+ * thay, toàn bộ JavaScript đang chạy chết theo. Lúc quay về là một lần nạp
+ * trang MỚI TINH, không còn ai đang đợi. Nên việc đổi mã phải do màn hứng
+ * đường dẫn làm — xem `app/dang-nhap-xong.tsx`.
+ *
+ * Chuỗi bí mật PKCE thì vẫn còn, vì supabase-js cất nó dưới `localStorage` của
+ * chính tên miền này, mà tên miền thì không đổi suốt vòng đi về.
+ */
+export async function hoanTatOAuthWeb(): Promise<KetQuaVe> {
+  if (Platform.OS !== 'web' || typeof window === 'undefined') return { kieu: 'khong-phai' };
+
+  const duongHienTai = window.location.href;
+  const cho = layChoVe();
+
+  // Xét lỗi TRƯỚC khi hỏi mã — cùng lý do với nhánh máy thật.
+  const l = docLoi(duongHienTai);
+  if (l) {
+    if (laKhachTuChoi(l.ma, l.ta)) return { kieu: 'huy', duong: cho.duong };
+    if (cho.gan && laTrungDanhTinh(l.ma, l.ta))
+      return { kieu: 'loi', loi: new DaCoHoSoKhac().message, duong: cho.duong };
+    return {
+      kieu: 'loi',
+      loi: l.ta || `Đăng nhập không thành công (${l.ma}).`,
+      duong: cho.duong,
+    };
+  }
+
+  const ma = layMa(duongHienTai);
+  if (!ma) return { kieu: 'khong-phai' };
+
+  const { error } = await supabase.auth.exchangeCodeForSession(ma);
+  if (error) return { kieu: 'loi', loi: loiDeHieu(doiLoi(error, cho.gan)), duong: cho.duong };
+
+  await ghiDauTaiKhoanThat();
+  // Thẻ đang cầm được cấp lúc còn ẩn danh. Không làm mới thì gắn xong màn Cá
+  // nhân vẫn tưởng khách chưa đăng nhập.
+  await supabase.auth.refreshSession().catch(() => {});
+
+  return { kieu: 'xong', duong: cho.duong, gan: cho.gan };
 }
 
 /** Khách tự bấm huỷ. Tách riêng để màn hình không hiện chữ đỏ doạ người ta. */
@@ -108,6 +198,32 @@ async function chayOAuth(nha: NhaCungCap, gan: boolean): Promise<void> {
     : await supabase.auth.signInWithOAuth({ provider: nha, options: tuyChon });
   if (error) throw doiLoi(error, gan);
   if (!data?.url) throw new Error(`Chưa bật đăng nhập ${TEN[nha]} ở phía máy chủ.`);
+
+  // ════════════════════════════ WEB: ĐI THẲNG TRONG CÙNG MỘT TAB
+  //
+  // `openAuthSessionAsync` trên web mở một CỬA SỔ BẬT LÊN rồi đợi cửa sổ đó
+  // `postMessage` ngược về. Trên máy tính thì chạy. Trên trình duyệt ĐIỆN
+  // THOẠI thì không: cửa sổ bật lên bị biến thành một TAB MỚI, mà tab mới
+  // trên di động thường không giữ `window.opener`, và `window.close()` cũng
+  // bị từ chối. Brave còn cắt mối liên hệ đó chặt hơn nữa.
+  //
+  // Hậu quả đúng như khách báo ngày 2026-11-09: bấm đăng nhập Google xong bị
+  // đẩy sang một tab khác, tab cũ thì đợi vô tận. Và tab mới cũng KHÔNG đăng
+  // nhập được, vì `detectSessionInUrl` đang tắt nên không ai đổi mã.
+  //
+  // Nên trên web bỏ hẳn cửa sổ bật lên: thay cả trang, quay về cũng cùng tab
+  // đó. Mất cái tiện là app phải nạp lại, nhưng đổi lại là nó CHẠY — kể cả
+  // trên trình duyệt chặn cửa sổ bật lên, kể cả trong chế độ ẩn danh.
+  //
+  // Phần đóng vòng nằm ở `hoanTatOAuthWeb`, gọi từ `app/dang-nhap-xong.tsx`.
+  if (Platform.OS === 'web') {
+    nhoChoVe(gan);
+    window.location.assign(data.url);
+    // Trang sắp bị thay, nên lời hứa này CỐ Ý không bao giờ xong: màn hình giữ
+    // nguyên vòng xoay cho tới lúc trình duyệt rời đi, thay vì chớp về trạng
+    // thái cũ một nhịp rồi mới chuyển.
+    return new Promise<never>(() => {});
+  }
 
   const duong = await moVaCho(data.url, ve);
   if (!duong) throw new KhachHuy();
