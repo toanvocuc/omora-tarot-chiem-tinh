@@ -45,6 +45,14 @@ const NET = {
   muiTen: 'M4 12h16m-6-6 6 6-6 6',
   /** Giọt nước — tưới cây. */
   nuoc: 'M12 2S4 10 4 15a8 8 0 0 0 16 0c0-5-8-13-8-13ZM8 15a4 4 0 0 0 4 4',
+  /** Máy ảnh — đính một tấm ảnh. */
+  mayAnh: 'M3 7h4l2-4h6l2 4h4v14H3V7Zm9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8',
+  /** Thùng rác — xoá một trang đã cất. */
+  thungRac: 'M3 6h18M8 6V3h8v3M5 6l1 15h12l1-15M10 10v7m4-7v7',
+  /** Dấu cộng — mở một trang mới. */
+  them: 'M12 4v16M4 12h16',
+  /** Kính lúp — tìm trong nhật ký. */
+  timKiem: 'M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14m5 12 6 6',
 } as const;
 
 export type TenIcon = keyof typeof NET;

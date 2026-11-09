@@ -13,12 +13,15 @@ import { Image } from 'expo-image';
 import { Directory, File, Paths } from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, Text, TextInput, View } from 'react-native';
 
 import { hoi } from '@/lib/hoi-lai';
+import { IconNet } from '@/components/icon-net';
 import { KhungVe, XemLaiNet, type Net } from '@/components/khung-ve';
 import { Khoi, ManHinh, Nhan, Nut } from '@/components/nen';
+import { HaiCot } from '@/components/san-bai-pc';
 import { CHU, MAU } from '@/constants/giao-dien';
+import { useManPC } from '@/constants/khung-web';
 import { DE_VE, deCuaNgay } from '@/data/de-thuc-hanh';
 import {
   cacTrang,
@@ -30,6 +33,57 @@ import {
   type BuoiThucHanh,
 } from '@/lib/thuc-hanh';
 
+/**
+ * Năm màu mực của bản mẫu.
+ *
+ * Đủ để phân biệt mà không màu nào chói trên giấy kem. Cất kèm từng nét nên
+ * bức cũ vẽ bằng bản chưa có bảng màu vẫn đọc lại đúng — xem `Net.mau`.
+ */
+const MUC_VE = ['#3C294C', '#A07E34', '#8C626C', '#6B8A78', '#456787'] as const;
+
+/** Màu giấy của bản mẫu. Trắng tinh giữa nền tím đêm thì chói mắt. */
+const GIAY = '#F2EDE3';
+
+/** Ba cỡ nét, đúng tên của bản mẫu. */
+const CO_NET_PC: [number, string][] = [
+  [3, 'Nét mảnh'],
+  [6, 'Nét vừa'],
+  [12, 'Nét đậm'],
+];
+
+/**
+ * Hộp xổ chọn cỡ nét, CHỈ cho máy tính.
+ *
+ * Dùng thẻ `select` thật như bản mẫu: ba chấm tròn của bản điện thoại hợp với
+ * ngón tay, còn trên máy tính thì một hộp xổ có CHỮ đọc được rõ hơn hẳn — và
+ * bàn phím với trình đọc màn hình đều đã biết cách dùng.
+ */
+function ChonCoNet({ gia, dat }: { gia: number; dat: (v: number) => void }) {
+  if (Platform.OS !== 'web') return null;
+  return (
+    <select
+      value={String(gia)}
+      onChange={(e) => dat(Number(e.target.value))}
+      aria-label="Cỡ nét"
+      style={{
+        background: MAU.nenNhat,
+        color: MAU.chuChinh,
+        border: `1px solid ${MAU.vien}`,
+        borderRadius: 9,
+        padding: '7px 10px',
+        fontSize: 12,
+        fontFamily: CHU.than,
+        cursor: 'pointer',
+      }}>
+      {CO_NET_PC.map(([v, ten]) => (
+        <option key={v} value={v}>
+          {ten}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 export default function ManVe() {
   const buoi = useThucHanh();
   const de = deCuaNgay(DE_VE, ngayHomNay());
@@ -40,6 +94,10 @@ export default function ManVe() {
   /** Mã bức đang sửa. Null là đang vẽ bức mới. */
   const [dangSua, datDangSua] = useState<string | null>(null);
   const [anh, datAnh] = useState<string | null>(null);
+  const pc = useManPC();
+  /** Màu mực và cỡ nét, chỉ bản máy tính mới bày ra cho chọn. */
+  const [mau, datMau] = useState<string>(MUC_VE[0]);
+  const [dayNet, datDayNet] = useState<number>(3);
 
   const trang = cacTrang(buoi).filter((b) => b.loai === 've');
   const coGi = net.length > 0 || ghi.trim().length > 0 || anh !== null;
@@ -142,6 +200,225 @@ export default function ManVe() {
         },
       },
     ]);
+  }
+
+  if (pc) {
+    return (
+      <ManHinh
+        tieuDe="Thả tay, không ai chấm điểm"
+        phu="Vẽ một điều trong đầu bạn, hoặc lưu lại một khoảnh khắc trong ngày."
+        quayLai>
+        <HaiCot
+          trai={
+            <Khoi>
+              <View className="mb-5 flex-row items-start justify-between">
+                <View className="flex-1 pr-4">
+                  <Nhan>Gợi ý hôm nay</Nhan>
+                  <Text
+                    style={{ fontFamily: CHU.hoaDam, fontSize: 23, lineHeight: 31 }}
+                    className="text-chu-chinh">
+                    {de}
+                  </Text>
+                </View>
+                <IconNet ten="ve" co={22} mau={MAU.vangSang} />
+              </View>
+
+              {/* Giấy màu kem như bản mẫu, không phải trắng tinh: trắng tinh
+                  giữa một trang toàn nền tím đêm thì chói mắt, mà nét mực đậm
+                  trên kem vẫn rõ y như trên trắng. */}
+              <KhungVe
+                net={net}
+                datNet={(n) => {
+                  datNet(n);
+                  datDaLuu(false);
+                }}
+                datCo={datCo}
+                cao={370}
+                nen={GIAY}
+                mau={mau}
+                day={dayNet}
+                anCongCu
+              />
+
+              <View className="mt-4 flex-row flex-wrap items-center gap-3">
+                {MUC_VE.map((c) => {
+                  const dang = c === mau;
+                  return (
+                    <Pressable
+                      key={c}
+                      onPress={() => datMau(c)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Màu ${c}`}
+                      accessibilityState={{ selected: dang }}
+                      style={{
+                        width: 26,
+                        height: 26,
+                        borderRadius: 13,
+                        backgroundColor: c,
+                        borderWidth: dang ? 2 : 1,
+                        borderColor: dang ? MAU.vang : MAU.vien,
+                      }}
+                      className="active:opacity-70"
+                    />
+                  );
+                })}
+
+                <ChonCoNet gia={dayNet} dat={datDayNet} />
+
+                <Pressable
+                  onPress={() => datNet(net.slice(0, -1))}
+                  disabled={net.length === 0}
+                  className="active:opacity-70"
+                  style={{ opacity: net.length === 0 ? 0.4 : 1 }}>
+                  <Text style={{ fontFamily: CHU.thanVua, fontSize: 13 }} className="text-vang">
+                    Hoàn tác
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => datNet([])}
+                  disabled={net.length === 0}
+                  className="active:opacity-70"
+                  style={{ opacity: net.length === 0 ? 0.4 : 1 }}>
+                  <Text style={{ fontFamily: CHU.thanVua, fontSize: 13 }} className="text-vang">
+                    Xoá nét
+                  </Text>
+                </Pressable>
+              </View>
+
+              {anh ? (
+                <View className="mt-5">
+                  <Image
+                    source={{ uri: anh }}
+                    style={{ width: '100%', height: 190, borderRadius: 14 }}
+                    contentFit="cover"
+                  />
+                  <Pressable onPress={() => datAnh(null)} className="mt-2 active:opacity-70">
+                    <Text style={{ fontFamily: CHU.thanVua, fontSize: 13 }} className="text-vang">
+                      Bỏ tấm ảnh này
+                    </Text>
+                  </Pressable>
+                </View>
+              ) : null}
+
+              <Text
+                style={{ fontFamily: CHU.than, fontSize: 12 }}
+                className="mb-2 mt-5 text-chu-phu">
+                Một dòng về bức vẽ, nếu bạn muốn
+              </Text>
+              <TextInput
+                value={ghi}
+                onChangeText={(t) => {
+                  datGhi(t);
+                  datDaLuu(false);
+                }}
+                placeholder="Tôi đã nghĩ đến…"
+                placeholderTextColor={MAU.chuMo}
+                style={{
+                  fontFamily: CHU.than,
+                  color: MAU.chuChinh,
+                  borderColor: MAU.vien,
+                  borderWidth: 1,
+                  borderRadius: 11,
+                  paddingHorizontal: 14,
+                  minHeight: 46,
+                }}
+                className="bg-nen-nhat text-[15px]"
+              />
+
+              <View className="mt-5 flex-row items-center justify-between gap-4">
+                <Pressable
+                  onPress={() => void chonAnh()}
+                  accessibilityRole="button"
+                  style={{ borderColor: MAU.vien, borderWidth: 1, borderRadius: 11, minHeight: 44 }}
+                  className="flex-row items-center gap-2 px-4 active:opacity-70">
+                  <IconNet ten="mayAnh" co={16} mau={MAU.chuPhu} />
+                  <Text style={{ fontFamily: CHU.thanVua, fontSize: 13 }} className="text-chu-phu">
+                    Đính một tấm ảnh
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  onPress={xong}
+                  disabled={!coGi}
+                  accessibilityRole="button"
+                  style={{
+                    backgroundColor: MAU.vang,
+                    borderRadius: 11,
+                    minHeight: 44,
+                    opacity: coGi ? 1 : 0.45,
+                  }}
+                  className="flex-row items-center gap-2 px-5 active:opacity-80">
+                  <Text style={{ fontFamily: CHU.thanDam, color: MAU.nen }} className="text-sm">
+                    {dangSua ? 'Lưu thay đổi' : 'Lưu vào nhật ký'}
+                  </Text>
+                  <IconNet ten="muiTen" co={15} mau={MAU.nen} />
+                </Pressable>
+              </View>
+
+              {daLuu ? (
+                <Text
+                  style={{ fontFamily: CHU.than, fontSize: 13 }}
+                  className="mt-3 text-center text-chu-phu">
+                  Đã cất.
+                </Text>
+              ) : null}
+            </Khoi>
+          }
+          phai={
+            <Khoi>
+              <Nhan>Những điều đã giữ lại</Nhan>
+              {trang.length === 0 ? (
+                <View className="items-center py-9">
+                  <IconNet ten="ve" co={26} mau={MAU.vangSang} />
+                  <Text
+                    style={{ fontFamily: CHU.than, fontSize: 12, lineHeight: 20 }}
+                    className="mt-3 text-center text-chu-mo">
+                    Chưa có bức vẽ nào.{'\n'}Bắt đầu bằng một nét thôi.
+                  </Text>
+                </View>
+              ) : (
+                <View className="gap-5">
+                  {trang.slice(0, 12).map((t) => {
+                    const doc = docTrang(t.noiDung);
+                    return (
+                      <View key={t.ma}>
+                        <Pressable onPress={() => moSua(t)} className="active:opacity-70">
+                          {doc.net.length ? (
+                            <XemLaiNet net={doc.net} co={doc.co} cao={120} nen={GIAY} />
+                          ) : doc.anh ? (
+                            <Image
+                              source={{ uri: doc.anh }}
+                              style={{ width: '100%', height: 120, borderRadius: 12 }}
+                              contentFit="cover"
+                            />
+                          ) : null}
+                        </Pressable>
+                        <View className="mt-2 flex-row items-center justify-between gap-2">
+                          <Text
+                            numberOfLines={2}
+                            style={{ fontFamily: CHU.than, fontSize: 12 }}
+                            className="flex-1 text-chu-phu">
+                            {doc.ghi || 'Một bức vẽ nhỏ'}
+                          </Text>
+                          <Pressable
+                            onPress={() => hoiXoa(t)}
+                            accessibilityRole="button"
+                            accessibilityLabel="Xoá bức vẽ"
+                            hitSlop={8}
+                            className="active:opacity-60">
+                            <IconNet ten="thungRac" co={16} mau={MAU.chuMo} />
+                          </Pressable>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+            </Khoi>
+          }
+        />
+      </ManHinh>
+    );
   }
 
   return (

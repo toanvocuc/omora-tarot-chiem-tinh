@@ -51,6 +51,17 @@ export default function DoHop() {
 
   const [a, setA] = useState<MaCung>(cuaToi);
   const [b, setB] = useState<MaCung>('leo');
+  /**
+   * Cột phải chỉ bày hai khối ngắn. Nút này mở nốt phần còn lại.
+   *
+   * Bản gọn ban đầu gộp "để gần nhau hơn" thành `loi_khuyen || diem_yeu`, tức
+   * khi có lời khuyên thì phần ĐIỂM YẾU biến mất hẳn — mất chữ thật, không
+   * phải xếp lại chỗ. Sếp nhận ra ngay ngày 2026-11-09.
+   *
+   * Chữa bằng cách mở ra theo yêu cầu chứ không bày sẵn: ai muốn đọc kỹ thì
+   * bấm, còn mặc định vẫn gọn như bản mẫu.
+   */
+  const [docHet, datDocHet] = useState(false);
 
   const binh = dong?.find(
     (d) => (d.cung_a === a && d.cung_b === b) || (d.cung_a === b && d.cung_b === a)
@@ -120,25 +131,62 @@ export default function DoHop() {
                   </Khoi>
                 ) : null}
 
-                {binh?.loi_khuyen || binh?.diem_yeu ? (
+                {binh?.loi_khuyen ? (
                   <Khoi>
                     <Nhan>Để gần nhau hơn</Nhan>
                     <Text
                       style={{ fontFamily: CHU.than, fontSize: 14, lineHeight: 25 }}
                       className="text-chu-phu">
-                      {binh?.loi_khuyen || binh?.diem_yeu}
+                      {binh.loi_khuyen}
                     </Text>
-                    <Pressable
-                      onPress={() => router.push('/chuyen-gia')}
-                      accessibilityRole="link"
-                      className="mt-5 flex-row items-center gap-2 active:opacity-70">
-                      <Text style={{ fontFamily: CHU.thanDam, fontSize: 13 }} className="text-vang">
-                        Trò chuyện với chuyên gia
-                      </Text>
-                      <IconNet ten="muiTen" co={15} mau={MAU.vang} />
-                    </Pressable>
                   </Khoi>
                 ) : null}
+
+                {/* Phần đọc kỹ, giấu sau một nút. Giữ đủ mọi chữ của bản điện
+                    thoại mà màn mặc định vẫn gọn. */}
+                {docHet && binh?.diem_yeu ? (
+                  <Khoi>
+                    <Nhan>Dễ vướng ở chỗ</Nhan>
+                    <Text
+                      style={{ fontFamily: CHU.than, fontSize: 14, lineHeight: 25 }}
+                      className="text-chu-phu">
+                      {binh.diem_yeu}
+                    </Text>
+                  </Khoi>
+                ) : null}
+
+                {binh?.diem_yeu ? (
+                  <Pressable
+                    onPress={() => datDocHet((v) => !v)}
+                    accessibilityRole="button"
+                    accessibilityState={{ expanded: docHet }}
+                    className="flex-row items-center justify-center gap-2 py-1 active:opacity-70">
+                    <Text style={{ fontFamily: CHU.thanDam, fontSize: 13 }} className="text-vang">
+                      {docHet ? 'Thu gọn' : 'Đọc đầy đủ'}
+                    </Text>
+                    <Text style={{ fontFamily: CHU.than, fontSize: 12 }} className="text-vang">
+                      {docHet ? '▲' : '▼'}
+                    </Text>
+                  </Pressable>
+                ) : null}
+
+                <Khoi>
+                  <Nhan>Muốn hỏi kỹ hơn</Nhan>
+                  <Text
+                    style={{ fontFamily: CHU.than, fontSize: 14, lineHeight: 25 }}
+                    className="text-chu-phu">
+                    Chuyện hai người còn tuỳ lá số thật, không chỉ hai cung mặt trời.
+                  </Text>
+                  <Pressable
+                    onPress={() => router.push('/chuyen-gia')}
+                    accessibilityRole="link"
+                    className="mt-5 flex-row items-center gap-2 active:opacity-70">
+                    <Text style={{ fontFamily: CHU.thanDam, fontSize: 13 }} className="text-vang">
+                      Trò chuyện với chuyên gia
+                    </Text>
+                    <IconNet ten="muiTen" co={15} mau={MAU.vang} />
+                  </Pressable>
+                </Khoi>
               </View>
             }
           />

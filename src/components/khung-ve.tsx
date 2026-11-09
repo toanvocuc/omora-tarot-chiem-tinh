@@ -25,7 +25,17 @@ import { Nut } from '@/components/nen';
 import { CHU, MAU } from '@/constants/giao-dien';
 
 /** Một nét: chuỗi toạ độ đã làm tròn về số nguyên cho gọn. */
-export type Net = { d: string; day: number };
+export type Net = {
+  d: string;
+  day: number;
+  /**
+   * Màu mực. Thiếu thì lấy `MUC`.
+   *
+   * Để tuỳ chọn chứ không bắt buộc: nét vẽ cũ đã nằm trong nhật ký dưới máy
+   * khách từ trước khi có bảng màu, đọc lên mà đòi trường này là mất sạch.
+   */
+  mau?: string;
+};
 
 /** Ba cỡ nét. Đủ để vẽ đậm nhạt mà không phải bày ra một bảng chọn. */
 const CO_NET = [2, 5, 10];
@@ -47,6 +57,10 @@ export function KhungVe({
   datNet,
   datCo,
   cao = 320,
+  nen = '#FFFFFF',
+  mau = MUC,
+  day: dayNgoai,
+  anCongCu,
 }: {
   net: Net[];
   datNet: (n: Net[]) => void;
@@ -59,8 +73,22 @@ export function KhungVe({
    */
   datCo?: (c: { w: number; h: number }) => void;
   cao?: number;
+  /** Màu giấy. Mặc định trắng. Bản mẫu của bên GPT dùng màu kem. */
+  nen?: string;
+  /** Màu mực. Mặc định `MUC`. */
+  mau?: string;
+  /**
+   * Bề dày nét do BÊN NGOÀI quyết.
+   *
+   * Thiếu thì khung tự giữ lấy, và bày ba chấm chọn cỡ ở dưới như cũ. Bản web
+   * trên máy tính tự dựng thanh công cụ riêng theo bản mẫu nên truyền vào đây.
+   */
+  day?: number;
+  /** Giấu thanh công cụ dựng sẵn, để bên ngoài tự bày lấy. */
+  anCongCu?: boolean;
 }) {
-  const [day, datDay] = useState(CO_NET[1]);
+  const [dayTrong, datDay] = useState(CO_NET[1]);
+  const day = dayNgoai ?? dayTrong;
   const [dangVe, datDangVe] = useState<string | null>(null);
 
   function batDau(x: number, y: number) {
@@ -75,7 +103,7 @@ export function KhungVe({
     datDangVe((d) => {
       // Chạm một cái rồi nhấc tay ra ngay thì `d` chỉ có mỗi điểm bắt đầu, vẽ ra
       // không thấy gì. Nối thêm chính nó để thành một chấm tròn.
-      if (d) datNet([...net, { d: d.includes('L') ? d : `${d} L${d.slice(1)}`, day }]);
+      if (d) datNet([...net, { d: d.includes('L') ? d : `${d} L${d.slice(1)}`, day, mau }]);
       return null;
     });
   }
@@ -92,14 +120,14 @@ export function KhungVe({
       <GestureDetector gesture={cu_chi}>
         <View
           onLayout={(e) => datCo?.({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}
-          style={{ height: cao, borderColor: MAU.vien, backgroundColor: '#FFFFFF' }}
+          style={{ height: cao, borderColor: MAU.vien, backgroundColor: nen }}
           className="overflow-hidden rounded-2xl border">
           <Svg width="100%" height="100%">
             {net.map((n, i) => (
               <Path
                 key={i}
                 d={n.d}
-                stroke={MUC}
+                stroke={n.mau ?? MUC}
                 strokeWidth={n.day}
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -109,7 +137,7 @@ export function KhungVe({
             {dangVe ? (
               <Path
                 d={dangVe}
-                stroke={MUC}
+                stroke={mau}
                 strokeWidth={day}
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -128,6 +156,7 @@ export function KhungVe({
         </View>
       </GestureDetector>
 
+      {anCongCu ? null : (
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-3">
           {CO_NET.map((c) => (
@@ -159,6 +188,7 @@ export function KhungVe({
           <Nho nhan="Xoá hết" onPress={() => datNet([])} tat={net.length === 0} />
         </View>
       </View>
+      )}
     </View>
   );
 }
@@ -177,18 +207,28 @@ function Nho({ nhan, onPress, tat }: { nhan: string; onPress: () => void; tat?: 
  * `viewBox` là thứ thu cả bức về vừa ô. Thiếu nó thì nét giữ nguyên toạ độ cũ và
  * bức vẽ bị cắt mất phần dưới.
  */
-export function XemLaiNet({ net, co, cao = 160 }: { net: Net[]; co?: { w: number; h: number }; cao?: number }) {
+export function XemLaiNet({
+  net,
+  co,
+  cao = 160,
+  nen = '#FFFFFF',
+}: {
+  net: Net[];
+  co?: { w: number; h: number };
+  cao?: number;
+  nen?: string;
+}) {
   const khung = co && co.w > 0 && co.h > 0 ? co : { w: 400, h: 320 };
   return (
     <View
-      style={{ height: cao, borderColor: MAU.vien, backgroundColor: '#FFFFFF' }}
+      style={{ height: cao, borderColor: MAU.vien, backgroundColor: nen }}
       className="overflow-hidden rounded-xl border">
       <Svg width="100%" height="100%" viewBox={`0 0 ${khung.w} ${khung.h}`} preserveAspectRatio="xMidYMid meet">
         {net.map((n, i) => (
           <Path
             key={i}
             d={n.d}
-            stroke={MUC}
+            stroke={n.mau ?? MUC}
             strokeWidth={n.day}
             strokeLinecap="round"
             strokeLinejoin="round"
