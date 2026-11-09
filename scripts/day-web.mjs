@@ -90,12 +90,40 @@ writeFileSync(join(GHP, '404.html'), trang);
 // tên bắt đầu bằng dấu gạch dưới — tức nuốt sạch `_expo`.
 writeFileSync(join(GHP, '.nojekyll'), '');
 
+/**
+ * Vá địa chỉ của riêng từng tuyến vào bản sao.
+ *
+ * `og:url` do `public/index.html` ghi cứng là `https://omorasoul.com`. Chép
+ * nguyên xi thì cả 37 trang cùng khai mình là trang chủ, và hai chuyện xảy ra:
+ *
+ *   • Chia sẻ link `/chuyen-gia` lên Zalo hay Facebook thì thẻ xem trước hiện
+ *     ra nhưng bấm vào lại nhảy về trang chủ — máy thu thập tin `og:url` hơn
+ *     tin địa chỉ nó vừa tải.
+ *   • Máy tìm kiếm coi `og:url` kèm `canonical` là "trang thật nằm ở đâu", nên
+ *     gộp cả 37 trang thành một.
+ *
+ * `canonical` thì bản gốc không có dòng nào, thêm luôn ở đây.
+ */
+function vaDiaChi(html, duong) {
+  const diaChi = `https://omorasoul.com/${duong}${duong ? '/' : ''}`;
+  return html
+    .replace(
+      '<meta property="og:url" content="https://omorasoul.com" />',
+      `<meta property="og:url" content="${diaChi}" />\n    <link rel="canonical" href="${diaChi}" />`
+    );
+}
+
 console.log('4/4  Đẻ index.html cho từng tuyến…');
+// Trang gốc cũng cần `canonical`, và `og:url` của nó phải có dấu gạch cuối cho
+// khớp với địa chỉ GitHub Pages thật sự phục vụ.
+writeFileSync(join(GHP, 'index.html'), vaDiaChi(trang, ''));
+// `404.html` cố ý GIỮ NGUYÊN bản gốc: nó phục vụ những địa chỉ không có thật,
+// mà gán cho chúng một `canonical` là chỉ máy tìm kiếm đi lập chỉ mục địa chỉ sai.
 const tuyen = doTuyen().sort();
 for (const t of tuyen) {
   const dich = join(GHP, t, 'index.html');
   mkdirSync(dirname(dich), { recursive: true });
-  writeFileSync(dich, trang);
+  writeFileSync(dich, vaDiaChi(trang, t));
 }
 console.log(`     ${tuyen.length} tuyến: ${tuyen.join(', ')}`);
 
