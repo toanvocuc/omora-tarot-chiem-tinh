@@ -167,6 +167,7 @@ export function Khoi({
   vien,
   vang,
   anhNen,
+  cao,
 }: {
   children: React.ReactNode;
   /** Viền vàng mờ, dùng để nhấn một khối giữa nhiều khối giống nhau. */
@@ -181,9 +182,27 @@ export function Khoi({
   vang?: boolean;
   /** Ảnh lót bên trong khối. Chạy dưới một lớp phủ tối để chữ vẫn đọc được. */
   anhNen?: ImageSourcePropType;
+  /**
+   * Cao bằng ô lưới bao ngoài, thay vì cao theo nội dung của chính mình.
+   *
+   * Cần khi hai hay bốn khối nằm cạnh nhau trong `LuoiPC`: ô lưới đã giãn ra
+   * bằng chiều cao hàng rồi, nhưng khối BÊN TRONG ô thì không — React Native
+   * chỉ giãn con theo chiều NGANG, chiều dọc vẫn ôm lấy nội dung. Thiếu `cao`
+   * là khối nào chữ ngắn sẽ hụt một khoảng dưới đáy, và cả hàng thụt thò.
+   *
+   * KHÔNG bật mặc định: khối đứng một mình trong cột dọc mà `flex: 1` là nó
+   * cố giãn hết phần trống còn lại của màn.
+   */
+  cao?: boolean;
 }) {
   const vienMau = vang ? MAU.vang : vien ? MAU.vangMo : MAU.vien;
-  const khung = { borderRadius: 18, borderWidth: 1, borderColor: vienMau, overflow: 'hidden' as const };
+  const khung = {
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: vienMau,
+    overflow: 'hidden' as const,
+    ...(cao ? { flex: 1 } : null),
+  };
 
   if (anhNen) {
     return (

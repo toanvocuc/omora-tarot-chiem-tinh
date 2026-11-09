@@ -8,6 +8,9 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { BieuTuongCung } from '@/components/bieu-tuong-cung';
 import { HoiChuyenGia } from '@/components/hoi-chuyen-gia';
+import { IconNet, type TenIcon } from '@/components/icon-net';
+import { LuoiPC, OLuoi } from '@/components/luoi-pc';
+import { HaiCot, ThanhThe } from '@/components/san-bai-pc';
 import { ChuThan, DangTai, Khoi, LuuYThamKhao, Nhan, Nut, Trong, VanNgan } from '@/components/nen';
 import { KhungPC } from '@/components/khung-pc';
 import { NutQuayLai } from '@/components/nut-quay-lai';
@@ -17,7 +20,7 @@ import { ThanhTieuDe } from '@/components/thanh-tieu-de';
 import { CHU, MAU, NEN_CHUYEN, NEN_PHANG } from '@/constants/giao-dien';
 import { useManPC } from '@/constants/khung-web';
 import { tachNgay, useHoSo } from '@/lib/ho-so';
-import { useCung, useTuVi, type DongTuVi } from '@/lib/kho-noi-dung';
+import { useCung, useTuVi, type DongTuVi, type NoiDungCung } from '@/lib/kho-noi-dung';
 import { layBaiTuVi, ngayChu, tuanChu } from '@/lib/tu-vi';
 import { cungTheoNgay, diemHop, timCung, type MaCung } from '@/lib/zodiac';
 
@@ -90,6 +93,19 @@ export default function ChiTietCung() {
               <NutQuayLai />
             </View>
           ) : null}
+          {pc ? (
+            <ChiTietPC
+              cung={cung}
+              nd={nd}
+              cs={cs}
+              kho={tuVi.dong}
+              dangTai={tuVi.dangTai}
+              loiTuVi={tuVi.loi}
+              cuaToi={cuaToi}
+              kyBanDau={kyBanDau}
+            />
+          ) : (
+            <>
           <View className="items-center">
             <View
               style={{ borderColor: MAU.vangMo }}
@@ -209,6 +225,9 @@ export default function ChiTietCung() {
             </View>
           ) : null}
 
+            </>
+          )}
+
           <HoiChuyenGia
             manHinh="chi-tiet-cung"
             loiMoi={`Là ${cung.ten} thì điều gì đang chờ bạn tháng này? Nhắn cho chuyên gia để hỏi cho rõ.`}
@@ -282,6 +301,227 @@ function TuVi({
         </Khoi>
       ) : null}
     </View>
+  );
+}
+
+/**
+ * Bản máy tính: băng đầu trang, ba thẻ, lưới hai cột, và một cột phụ bên phải.
+ *
+ * ──────────────────────────────────────────────── VÌ SAO PHẢI DỰNG LẠI
+ *
+ * Bản điện thoại đổ TẤT CẢ ra một cột: bốn thanh chỉ số, một đoạn tổng quan,
+ * ba ô số vui, rồi tình cảm, công việc, sức khoẻ, tính cách, điểm mạnh, điểm
+ * yếu, so với cung của bạn. Mười khối chữ. Trên màn điện thoại thì cuộn một
+ * mạch là xong, nhưng trải ra 1170 điểm ảnh thì mỗi khối thành một dải dài,
+ * và mắt không biết bắt đầu từ đâu. Sếp chê đúng chỗ đó ngày 2026-11-09:
+ * "diễn giải quá nhiều làm cho phần UI bị nhiều chữ".
+ *
+ * Bản mẫu của bên GPT chữa bằng hai việc, chép lại cả hai:
+ *
+ *   1. THÊM MỘT THẺ. Tính cách, điểm mạnh, điểm yếu và bốn thanh chỉ số dọn
+ *      hết sang thẻ "Tính cách". Chúng tả con người cái cung, không đổi theo
+ *      ngày — nằm chung với tử vi hôm nay là trộn hai thứ khác hẳn nhau.
+ *      Nhờ vậy màn mặc định còn đúng bốn ô.
+ *   2. CHIA HAI CỘT. Mấy con số vui và lối rẽ sang Độ hợp sang cột phải, nên
+ *      cột chính chỉ còn phần đọc.
+ *
+ * Không bỏ một chữ nào của bản điện thoại, chỉ xếp lại chỗ.
+ */
+function ChiTietPC({
+  cung,
+  nd,
+  cs,
+  kho,
+  dangTai,
+  loiTuVi,
+  cuaToi,
+  kyBanDau,
+}: {
+  cung: ReturnType<typeof timCung>;
+  nd: NoiDungCung | undefined;
+  cs: ReturnType<typeof chiSo>;
+  kho: DongTuVi[] | null;
+  dangTai: boolean;
+  loiTuVi: string | null;
+  cuaToi: MaCung | null;
+  kyBanDau?: string;
+}) {
+  const [the, setThe] = useState(kyBanDau === 'tuan' ? 1 : 0);
+  const ky: 'ngay' | 'tuan' = the === 1 ? 'tuan' : 'ngay';
+  const b = layBaiTuVi(kho, cung.ma, ky);
+
+  /** Bốn mục của một bài tử vi, mỗi mục một icon — đúng bộ của bản mẫu. */
+  const muc: [string, string | null, TenIcon][] = [
+    ['Tổng quan', b.tongQuan, 'troi'],
+    ['Tình cảm', b.tinhCam, 'tim'],
+    ['Công việc', b.congViec, 'sach'],
+    ['Chăm sóc bản thân', b.sucKhoe, 'la'],
+  ];
+
+  return (
+    <HaiCot
+      trai={
+        <View>
+          <Khoi vien>
+            <View className="flex-row items-center gap-5">
+              <View
+                style={{ borderColor: MAU.vangMo, width: 78, height: 78 }}
+                className="items-center justify-center rounded-full border">
+                <BieuTuongCung ma={cung.ma} co={38} />
+              </View>
+              <View className="flex-1">
+                <Text
+                  style={{ fontFamily: CHU.thanDam, fontSize: 10, letterSpacing: 1.3 }}
+                  className="uppercase text-vang">
+                  {nd?.ten_en ?? cung.ma} · {cung.nguyenTo}
+                </Text>
+                <Text
+                  style={{ fontFamily: CHU.hoaDam, fontSize: 34, lineHeight: 42 }}
+                  className="text-chu-chinh">
+                  {cung.ten}
+                </Text>
+                {nd ? (
+                  <Text style={{ fontFamily: CHU.than, fontSize: 13 }} className="text-chu-phu">
+                    {nd.tu_ngay} – {nd.den_ngay} · {nd.tinh_chat}
+                  </Text>
+                ) : null}
+              </View>
+            </View>
+          </Khoi>
+
+          <View className="mt-6">
+            <ThanhThe
+              cac={['Hôm nay', 'Tuần này', 'Tính cách'] as const}
+              dang={the}
+              doi={setThe}
+            />
+
+            {the === 2 ? (
+              <View className="gap-4">
+                {nd ? (
+                  <Khoi>
+                    <Nhan>Tính cách {cung.ten}</Nhan>
+                    <ChuThan>{nd.tinh_cach}</ChuThan>
+                  </Khoi>
+                ) : null}
+                {nd ? (
+                  <LuoiPC>
+                    <OLuoi>
+                      <Khoi cao>
+                        <Nhan>Điểm mạnh</Nhan>
+                        <ChuThan>{nd.diem_manh}</ChuThan>
+                      </Khoi>
+                    </OLuoi>
+                    <OLuoi>
+                      <Khoi cao>
+                        <Nhan>Điểm yếu</Nhan>
+                        <ChuThan>{nd.diem_yeu}</ChuThan>
+                      </Khoi>
+                    </OLuoi>
+                  </LuoiPC>
+                ) : null}
+                <Khoi>
+                  <Nhan>Mấy nét nổi lên</Nhan>
+                  <View className="mt-1 flex-row flex-wrap justify-between gap-y-5">
+                    <Chi nhan="Tình duyên" gia={cs.tinhDuyen} />
+                    <Chi nhan="Sự nghiệp" gia={cs.suNghiep} />
+                    <Chi nhan="Sức khoẻ" gia={cs.sucKhoe} />
+                    <Chi nhan="May mắn" gia={cs.mayMan} />
+                  </View>
+                </Khoi>
+              </View>
+            ) : dangTai ? (
+              <DangTai />
+            ) : loiTuVi ? (
+              <Trong loi={`Chưa tải được tử vi. ${loiTuVi}`} />
+            ) : !b.tongQuan ? (
+              <Trong loi="Chưa có bài tử vi cho cung này. Nạp data/tu_vi_mau.csv vào bảng tu_vi_mau." />
+            ) : (
+              <View>
+                <View className="mb-5 flex-row items-center justify-between">
+                  <Text style={{ fontFamily: CHU.than, fontSize: 12 }} className="text-chu-mo">
+                    {ky === 'ngay' ? ngayChu() : `Tuần ${tuanChu()}`}
+                  </Text>
+                  <View className="flex-row gap-1.5">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <View
+                        key={i}
+                        style={{ backgroundColor: i <= b.diem ? MAU.vang : MAU.vien }}
+                        className="h-2 w-7 rounded-full"
+                      />
+                    ))}
+                  </View>
+                </View>
+                <LuoiPC>
+                  {muc.map(([ten, chu, icon]) =>
+                    chu ? (
+                      <OLuoi key={ten}>
+                        <Khoi cao>
+                          <View className="mb-3 flex-row items-center gap-2.5">
+                            <IconNet ten={icon} co={19} mau={MAU.vangSang} />
+                            <Text
+                              style={{ fontFamily: CHU.hoaDam, fontSize: 21 }}
+                              className="text-chu-chinh">
+                              {ten}
+                            </Text>
+                          </View>
+                          <Text
+                            style={{ fontFamily: CHU.than, fontSize: 14, lineHeight: 25 }}
+                            className="text-chu-phu">
+                            {chu}
+                          </Text>
+                        </Khoi>
+                      </OLuoi>
+                    ) : null
+                  )}
+                </LuoiPC>
+              </View>
+            )}
+          </View>
+        </View>
+      }
+      phai={
+        <View className="gap-4">
+          <Khoi>
+            <Nhan>Một vài điều thú vị</Nhan>
+            <Text style={{ fontFamily: CHU.hoaDam, fontSize: 20 }} className="mb-4 text-chu-chinh">
+              Dành cho hôm nay
+            </Text>
+            <View className="flex-row gap-3">
+              <O nhan="Con số" gia={String(b.soMayMan)} />
+              <O nhan="Khung giờ" gia={b.gioTot} />
+              <O nhan="Màu sắc" gia={b.mauMayMan} />
+            </View>
+            <Text style={{ fontFamily: CHU.than, fontSize: 11 }} className="mt-4 text-chu-mo">
+              Các thông tin này mang tính giải trí.
+            </Text>
+          </Khoi>
+
+          <Khoi>
+            <Nhan>Bạn và người ấy</Nhan>
+            <Text style={{ fontFamily: CHU.hoaDam, fontSize: 20 }} className="mb-3 text-chu-chinh">
+              Hai người khác nhau ở đâu?
+            </Text>
+            <Text
+              style={{ fontFamily: CHU.than, fontSize: 14, lineHeight: 25 }}
+              className="text-chu-phu">
+              {cuaToi && cuaToi !== cung.ma
+                ? `${timCung(cuaToi).ten} và ${cung.ten} hợp nhau ${diemHop(cuaToi, cung.ma)} trên 5.`
+                : 'Thử đặt hai cung cạnh nhau để nhìn thêm một góc.'}
+            </Text>
+            <Pressable
+              onPress={() => router.push('/cung/do-hop')}
+              accessibilityRole="link"
+              className="mt-5 flex-row items-center gap-2 active:opacity-70">
+              <Text style={{ fontFamily: CHU.thanDam, fontSize: 13 }} className="text-vang">
+                Khám phá độ hợp
+              </Text>
+              <IconNet ten="muiTen" co={15} mau={MAU.vang} />
+            </Pressable>
+          </Khoi>
+        </View>
+      }
+    />
   );
 }
 
