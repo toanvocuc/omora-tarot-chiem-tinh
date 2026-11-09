@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<!--
+  Khung HTML của bản web — nơi duy nhất khai mấy thẻ xem trước khi chia sẻ link.
+
+  Trước đây không có tệp này nên Expo dùng mẫu mặc định của nó: chỉ có mỗi
+  <title>. Dán link vào Zalo hay Messenger thì hiện ra một dòng chữ trơ trọi,
+  người nhận không biết là app gì. Mấy thẻ og: dưới đây là thứ các nền tảng đó
+  đọc để dựng cái thẻ có ảnh.
+
+  ĐỪNG đổi sang +html.tsx: với web.output = "single" thì Expo không ngó tới tệp
+  đó, nó đọc đúng public/index.html này (xem webTemplate.js trong @expo/cli).
+
+  Thẻ <title> dưới đây mang một chỗ trống Expo sẽ thay bằng tên app trong
+  app.json lúc dựng. ĐỪNG viết lại tên chỗ trống đó ở bất kỳ đâu phía trên nó:
+  Expo chỉ thay LẦN GẶP ĐẦU TIÊN, nên nhắc tới nó trong ghi chú là ghi chú được
+  thay còn thẻ title thì trơ ra nguyên chỗ trống. Đã sập đúng một lần.
+  Phần <script> và <link> của gói cũng do Expo tự chèn vào, không viết tay.
+-->
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Omora Soul</title>
+
+    <meta name="description" content="Tarot, chiêm tinh và thần số học. Xem lá bài hôm nay, cung hoàng đạo và số chủ đạo của bạn." />
+    <!-- Màu thanh địa chỉ trên trình duyệt điện thoại, lấy đúng nền app. -->
+    <meta name="theme-color" content="#120E1C" />
+
+    <!-- Open Graph: Zalo, Messenger, Facebook, Telegram đều đọc bộ này.
+
+         Đường dẫn ảnh phải ĐẦY ĐỦ kèm https. Mấy nền tảng đó tải ảnh bằng máy
+         chủ của họ chứ không bằng trình duyệt người dùng, nên "/og.jpg" với
+         chúng là vô nghĩa.
+
+         ?v=1 là số hiệu bản ảnh. Đổi ảnh thì tăng số này lên, không thì Zalo
+         với Facebook vẫn đưa ra tấm cũ chúng đã nhớ sẵn. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Omora Soul" />
+    <meta property="og:title" content="Omora Soul" />
+    <meta property="og:description" content="Tarot, chiêm tinh và thần số học. Xem lá bài hôm nay, cung hoàng đạo và số chủ đạo của bạn." />
+    <meta property="og:url" content="https://omorasoul.com" />
+    <meta property="og:locale" content="vi_VN" />
+    <meta property="og:image" content="https://omorasoul.com/og.jpg?v=1" />
+    <!-- Khai sẵn cỡ ảnh thì nền tảng dựng được khung đúng tỷ lệ ngay, khỏi
+         phải tải ảnh về mới biết — thẻ hiện nhanh hơn và không giật. -->
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:alt" content="Biểu trưng Omora Soul" />
+
+    <!-- X và vài ứng dụng khác chỉ đọc bộ riêng này. -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Omora Soul" />
+    <meta name="twitter:description" content="Tarot, chiêm tinh và thần số học. Xem lá bài hôm nay, cung hoàng đạo và số chủ đạo của bạn." />
+    <meta name="twitter:image" content="https://omorasoul.com/og.jpg?v=1" />
+
+    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
+    <style id="expo-reset">
+      /* These styles make the body full-height */
+      html,
+      body {
+        height: 100%;
+      }
+      /* These styles disable body scrolling if you are using <ScrollView> */
+      body {
+        overflow: hidden;
+      }
+      /* These styles make the root element full-height */
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
+    </style>
+  <link rel="icon" href="/favicon.ico"/><link rel="preload" href="/_expo/static/css/web-a4f8b64e12914028de2bcbd0d91fbadd.css" as="style">
+<link rel="stylesheet" href="/_expo/static/css/web-a4f8b64e12914028de2bcbd0d91fbadd.css"></head>
+
+  <body>
+    <!-- Use static rendering with Expo Router to support running without JavaScript. -->
+    <noscript>
+      You need to enable JavaScript to run this app.
+    </noscript>
+    <!-- The root element for your Expo app. -->
+    <div id="root"></div>
+  <script src="/_expo/static/js/web/entry-bb32b61c6a31df4f72a53c23d17fb36f.js" defer></script>
+</body>
+</html>
